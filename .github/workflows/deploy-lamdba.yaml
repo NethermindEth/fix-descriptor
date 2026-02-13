@@ -66,10 +66,14 @@ jobs:
           IMAGE_TAG=descriptor-${{ github.sha }}
           IMAGE_URI=$ECR_REGISTRY/$ECR_REPOSITORY:$IMAGE_TAG
           echo "IMAGE_URI=$IMAGE_URI" >> $GITHUB_ENV
+          # Disable BuildKit
+          export DOCKER_BUILDKIT=0
+
           docker build \
             --platform linux/amd64 \
             -f ./apps/lambda/sam/Dockerfile \
             -t $IMAGE_URI .
+
           docker push $IMAGE_URI
 
       - name: Update Lambda function image
