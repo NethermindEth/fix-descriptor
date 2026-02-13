@@ -1,6 +1,7 @@
 {
-  "name": "fixdescriptorkit-typescript",
-  "version": "1.0.1",
+  "name": "@fixdescriptorkit/ts-sdk",
+  "version": "1.0.3",
+  "publishConfig": { "access": "public" },
   "description": "Transform FIX asset descriptors into canonical CBOR payloads and Merkle commitments for blockchain verification",
   "main": "dist/index.js",
   "module": "dist/index.js",
