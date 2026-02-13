@@ -1,7 +1,7 @@
 name: Build Image on AWS 
 on:
   push:
-    branches: [main,feat/ci-workflow]
+    branches: [main,fix/build-workflow]
 
 permissions:
   id-token: write
@@ -13,7 +13,7 @@ env:
   LAMBDA_FUNCTION_NAME: descriptor-function
 
 jobs:
-  pm-dash-backend-deploy:
+  lambda-deploy:
     runs-on: ubuntu-latest
 
     steps:
@@ -66,7 +66,10 @@ jobs:
           IMAGE_TAG=descriptor-${{ github.sha }}
           IMAGE_URI=$ECR_REGISTRY/$ECR_REPOSITORY:$IMAGE_TAG
           echo "IMAGE_URI=$IMAGE_URI" >> $GITHUB_ENV
-          docker buildx build --platform=linux/amd64 -f ./apps/lambda/sam/Dockerfile -t $IMAGE_URI .
+          docker build \
+            --platform linux/amd64 \
+            -f ./apps/lambda/sam/Dockerfile \
+            -t $IMAGE_URI .
           docker push $IMAGE_URI
 
       - name: Update Lambda function image
