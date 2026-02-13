@@ -3,8 +3,8 @@
   "version": "0.1.0",
   "private": true,
   "scripts": {
-    "predev": "npm -w fixdescriptorkit-typescript run build && cd ../.. && npm run generate-verification-json-if-possible",
-    "prebuild": "npm -w fixdescriptorkit-typescript run build && cd ../.. && npm run generate-verification-json-if-possible",
+    "predev": "npm -w @fixdescriptorkit/ts-sdk run build && cd ../.. && npm run generate-verification-json-if-possible",
+    "prebuild": "npm -w @fixdescriptorkit/ts-sdk run build && cd ../.. && npm run generate-verification-json-if-possible",
     "dev": "next dev --turbopack",
     "build": "next build",
     "start": "next start",
@@ -12,7 +12,7 @@
     "generate-verification-json": "cd ../.. && npm run generate-verification-json"
   },
   "dependencies": {
-    "fixdescriptorkit-typescript": "file:../../packages/fixdescriptorkit-typescript",
+    "@fixdescriptorkit/ts-sdk": "file:../../packages/fixdescriptorkit-typescript",
     "next": "^16.1.1",
     "react": "^19.2.3",
     "react-dom": "^19.2.3",

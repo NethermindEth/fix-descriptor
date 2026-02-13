@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server';
-import { buildCanonicalTree, enumerateLeaves, generateProof, type DescriptorTree, type GroupNode, type GroupEntry } from 'fixdescriptorkit-typescript';
+import { buildCanonicalTree, enumerateLeaves, generateProof, type DescriptorTree, type GroupNode, type GroupEntry } from '@fixdescriptorkit/ts-sdk';
 export const runtime = 'nodejs';
 
 // Build DescriptorTree from SBE parsed fields (group-aware)

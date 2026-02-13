@@ -55,7 +55,7 @@ jobs:
 
       - name: Build fixdescriptorkit-typescript package
         run: |
-          npm -w fixdescriptorkit-typescript run build
+          npm -w @fixdescriptorkit/ts-sdk run build
 
       - name: Build, tag, and push image to Amazon ECR
         id: build-image

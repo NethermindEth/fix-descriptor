@@ -6,7 +6,7 @@ import {
   buildMerkleTreeStructure,
   type DescriptorTree,
   type GroupNode
-} from 'fixdescriptorkit-typescript';
+} from '@fixdescriptorkit/ts-sdk';
 export const runtime = 'nodejs';
 
 type TreeNodeData = {

@@ -12,7 +12,7 @@ import { abi as AssetTokenAbi } from '@/lib/abis/AssetTokenERC20';
 import { chainFromEnv } from '@/lib/viemClient';
 import { createPublicClient, http } from 'viem';
 import { AddressLink, TransactionLink } from '@/components/BlockExplorerLink';
-import { orchestraToSbe, orchestraToSbeFullSchema, extractMessageIdFromSbe } from 'fixdescriptorkit-typescript/orchestraToSbe';
+import { orchestraToSbe, orchestraToSbeFullSchema, extractMessageIdFromSbe } from '@fixdescriptorkit/ts-sdk/orchestraToSbe';
 import { FaSyncAlt } from 'react-icons/fa';
 
 // Extend Window interface for MetaMask

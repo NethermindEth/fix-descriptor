@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server';
-import { DEMO_FIX_SCHEMA, parseFixDescriptor, buildCanonicalTree } from 'fixdescriptorkit-typescript';
+import { DEMO_FIX_SCHEMA, parseFixDescriptor, buildCanonicalTree } from '@fixdescriptorkit/ts-sdk';
 
 export async function POST(req: NextRequest) {
   const { fixRaw } = await req.json();

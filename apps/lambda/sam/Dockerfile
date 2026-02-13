@@ -15,7 +15,7 @@ RUN pnpm install
 
 
 # Ensure generated codecs importing "agrona" resolve to the vendored agrona-ts inside ts-sdk
-RUN ln -sfn /var/task/apps/lambda/node_modules/fixdescriptorkit-typescript/src/sbe/agrona-ts /var/task/apps/lambda/node_modules/agrona
+RUN ln -sfn /var/task/apps/lambda/node_modules/@fixdescriptorkit/ts-sdk/src/sbe/agrona-ts /var/task/apps/lambda/node_modules/agrona
 
 RUN ln -s /var/task/apps/lambda/node_modules /var/task/node_modules
 

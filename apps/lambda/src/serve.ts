@@ -1,7 +1,7 @@
 import { createServer } from "http";
 
-import { decodeFromInput, type DecodeArgs } from "fixdescriptorkit-typescript/sbe/decode";
-import { encodeFromInput, type Args as EncodeArgs } from "fixdescriptorkit-typescript/sbe/encode";
+import { decodeFromInput, type DecodeArgs } from "@fixdescriptorkit/ts-sdk/sbe/decode";
+import { encodeFromInput, type Args as EncodeArgs } from "@fixdescriptorkit/ts-sdk/sbe/encode";
 
 const port = Number.parseInt(process.env.PORT ?? "3000", 10);
 
