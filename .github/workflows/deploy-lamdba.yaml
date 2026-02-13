@@ -1,7 +1,7 @@
 name: Build Image on AWS 
 on:
   push:
-    branches: [main,fix/build-workflow]
+    branches: [main]
 
 permissions:
   id-token: write
