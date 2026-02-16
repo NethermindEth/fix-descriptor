@@ -1,6 +1,6 @@
 {
   "name": "@fixdescriptorkit/contracts",
-  "version": "1.0.0",
+  "version": "1.0.2",
   "description": "ERC-FIX Solidity contracts for embedding FIX Protocol descriptors in tokens",
   "main": "index.js",
   "files": [
