@@ -15,13 +15,14 @@ This is the **core transformation engine** for FixDescriptorKit. It handles:
 1. **FIX Message Parsing** - Convert FIX protocol messages to structured trees
 2. **Canonicalization** - Transform trees into deterministic, sorted representations
 3. **Merkle Tree Generation** - Create cryptographic commitments with proof support
-4. **Type Safety** - Fully typed API with runtime validation
+4. **Binary Encoding (SBE)** - Encode canonical trees to Simple Binary Encoding for efficient onchain storage
+5. **Type Safety** - Fully typed API with runtime validation
 
 **Note:** This library generates canonical trees and Merkle proofs. For onchain storage, the canonical tree is encoded using SBE (Simple Binary Encoding) via the SBE encoder service. 
 
 **CBOR Usage:** The library uses CBOR encoding internally for **Merkle path encoding only**. Specifically:
 - The `encodePathCBOR()` function (internal) uses the `cbor-x` library to encode path arrays (e.g., `[15]` → `0x811837`, `[454, 0, 455]` → CBOR bytes)
-- These CBOR-encoded paths are used in Merkle leaf computation: `keccak256(pathCBOR || "=" || valueBytes)`
+- These CBOR-encoded paths are used in Merkle leaf computation: `keccak256(pathCBOR || valueBytes)`
 - The canonical tree itself is a JavaScript object, not CBOR-encoded
 
 ## 🎯 Use Cases
@@ -156,7 +157,7 @@ Enumerates all fields in the canonical tree as Merkle leaves.
   - `path` - Array of integers identifying field location
   - `pathCBOR` - CBOR-encoded path (for hashing)
   - `value` - Field value as string
-  - `hash` - keccak256(pathCBOR || "=" || valueBytes)
+  - `hash` - keccak256(pathCBOR || valueBytes)
 
 **Example:**
 ```typescript
@@ -210,7 +211,7 @@ const root = computeRoot(leaves);
    - If odd node, promote to next level (no duplicate hashing)
 3. Return final root hash
 
-**Note:** The `pathCBOR` field in leaves uses CBOR encoding for the path array. When used onchain, this is passed as `pathCBOR` to the `verifyField` function.
+**Note:** The `pathCBOR` field in leaves uses CBOR encoding for the path array. When used onchain, this is passed as `pathSBE` to the `verifyField` function (the parameter name reflects SBE usage, but the encoding format is CBOR for path arrays).
 
 ---
 
@@ -266,9 +267,73 @@ console.log(`Proof valid: ${isValid}`); // true
 ```
 
 **Verification Process:**
-1. Compute leaf hash: `keccak256(pathCBOR || "=" || valueBytes)`
+1. Compute leaf hash: `keccak256(pathCBOR || valueBytes)`
 2. Walk proof tree using sibling hashes and directions
 3. Compare final computed root with expected root
+
+---
+
+## Binary Encoding (SBE)
+
+**Simple Binary Encoding (SBE)** is a schema-driven binary format designed for financial messages. It produces compact, deterministic bytes suitable for onchain storage via SSTORE2.
+
+The canonical tree (from `buildCanonicalTree`) is the common input: Merkle leaves are enumerated from it, and SBE encodes it for storage.
+
+**Pipeline:** FIX message → canonical tree → SBE schema (from Orchestra via `orchestraToSbe`) → TypeScript codecs generated → binary bytes for SSTORE2.
+
+### SBE Encoding Process
+
+The SBE encoding process transforms a FIX message into compact binary format through these steps:
+
+1. **Schema Preparation**
+   - Orchestra XML is converted to SBE schema XML via `orchestraToSbe()` or `orchestraToSbeFullSchema()`
+   - Schema is pruned to the specific message type (via `messageId`)
+   - Schema defines field types, encoding rules, and message structure
+
+2. **Codec Generation**
+   - The TypeScript codec generator (`lib/sbe-all.jar`, built from the `simple-binary-encoding` submodule) generates TypeScript encoder/decoder classes from the schema XML
+   - Codecs are generated at runtime to `/tmp/sbe-codecs` directory
+   - Generated codecs include `MessageHeaderEncoder` and message-specific encoders (e.g., `SecurityDefinitionEncoder`)
+
+3. **FIX Message Parsing**
+   - FIX message is tokenized: split by delimiter (`|` or `\u0001`), extract tag-value pairs
+   - Group IDs are identified from the schema to distinguish scalar fields from group count fields
+   - Scalar values are mapped by tag number, excluding group count fields
+
+4. **Field Encoding**
+   - Fields are encoded **in schema order** (not FIX message order), ensuring deterministic output
+   - **Scalar fields**: Values are coerced to appropriate types (int64, uint32, varStringEncoding, etc.) and set via generated encoder methods
+   - **Group fields**: Count is set first, then entries are encoded sequentially using group encoders
+   - **Data fields**: Variable-length data is encoded with length prefix
+   - **Nested groups**: Recursively encoded following the same pattern
+
+5. **Type Coercion**
+   - String values are coerced based on SBE field type:
+     - `int64`/`uint64`: BigInt conversion; timestamps parsed from ISO format; prices scaled (×1e8) for decimal precision
+     - `int32`/`uint32`: Integer parsing
+     - `float`/`double`: Float parsing
+     - `char`: Character code or integer
+     - `varStringEncoding`: UTF-8 bytes with length prefix
+
+6. **Buffer Management**
+   - Uses `DefaultMutableDirectBuffer` (Agrona) for efficient byte array management
+   - Message header is written first: `blockLength`, `templateId`, `schemaId`, `version`
+   - Encoded fields are written sequentially to the buffer
+   - Final buffer length is determined by `encoder.getLimit()`
+
+**API:** `encodeFromInput({ schema, fixMessage, messageId })` returns `Uint8Array` of encoded bytes.
+
+**Subpath imports:**
+```typescript
+import { encodeFromInput } from 'fixdescriptorkit-typescript/sbe/encode';
+import { decodeFromInput } from 'fixdescriptorkit-typescript/sbe/decode';
+```
+
+**Orchestra exports:** `orchestraToSbe(orchestraXml, messageType)`, `orchestraToSbeFullSchema(orchestraXml)`, `extractMessageIdFromSbe(schemaXml, messageType)`.
+
+**Build:** `npm run build:sbe-jar` builds the TypeScript codec generator (`sbe-all.jar`) from the `simple-binary-encoding` submodule; `npm run generate:sbe` produces schema from Orchestra XML. Requires Java on PATH for codec generation. The SBE module also includes `serve.ts`, exposing `/encode` and `/decode` endpoints (used by the web app and Lambda).
+
+---
 
 ## 📂 Module Structure
 
@@ -285,10 +350,25 @@ src/
 │   ├── computeRoot()
 │   ├── generateProof()
 │   └── verifyProof()
+├── orchestraToSbe.ts  # Orchestra → SBE schema
+├── sbe/
+│   ├── encode.ts      # encodeFromInput, encodeMessage
+│   ├── decode.ts      # decodeFromInput, decodeMessage
+│   ├── generator.ts   # runGenerator (SBE codec generation)
+│   ├── serve.ts       # HTTP /encode, /decode
+│   └── ...
 └── test/              # Unit tests
     ├── parse.test.ts
     ├── canonical.test.ts
     └── merkle.test.ts
+
+scripts/
+├── build-sbe-jar.js       # Build sbe-all.jar from submodule
+└── generate-sbe-schema.ts # Generate SBE schema from Orchestra
+
+lib/
+├── sbe-all.jar            # TypeScript codec generator (build with build:sbe-jar)
+└── SBE-FULL-FIX44.xml    # Pre-generated schema (generate:sbe)
 ```
 
 ## 🔧 Type Definitions
@@ -318,7 +398,7 @@ interface MerkleLeaf {
   path: number[];                            // Field path
   pathCBOR: Uint8Array;                      // CBOR-encoded path
   value: string;                             // Field value
-  hash: string;                              // keccak256(pathCBOR || "=" || value)
+  hash: string;                              // keccak256(pathCBOR || value)
 }
 
 // Merkle proof
@@ -395,6 +475,32 @@ console.log(`Proving path [453, 0, 448] = "ISSUER"`);
 console.log(`Proof length: ${proof.proof.length} hashes`);
 console.log(`Directions: ${proof.directions}`);
 ```
+
+### Example 4: Encode to SBE
+
+```typescript
+import { encodeFromInput } from 'fixdescriptorkit-typescript/sbe/encode';
+import { orchestraToSbeFullSchema } from 'fixdescriptorkit-typescript';
+
+// Load Orchestra XML schema
+const orchestraXml = `<?xml version="1.0"?>...`; // Orchestra schema XML
+
+// Generate SBE schema from Orchestra
+const sbeSchema = orchestraToSbeFullSchema(orchestraXml);
+
+// Encode FIX message to SBE binary
+const fixMessage = "55=AAPL|167=CS|15=USD|223=4.250";
+const messageId = 35; // SecurityDefinition message type
+const encoded = await encodeFromInput({ 
+  schema: sbeSchema, 
+  fixMessage, 
+  messageId 
+});
+
+console.log(`Encoded ${encoded.length} bytes`);
+// Encoded bytes can be deployed via SSTORE2 for onchain storage
+```
+
 ## 🔐 Security Considerations
 
 ### Deterministic Encoding
@@ -448,6 +554,16 @@ Output: `dist/` directory with compiled JavaScript and TypeScript declarations.
 - **viem** - Ethereum utilities (keccak256 hashing)
 - **zod** - Runtime type validation
 - **vitest** - Testing framework
+- **simple-binary-encoding** - Git submodule; TypeScript codec generator source (builds sbe-all.jar)
+- **fast-xml-parser** - SBE schema parsing
+- **@xmldom/xmldom** - Orchestra XML parsing (orchestraToSbe)
+
+### Scripts
+
+- `build:sbe-jar` - Build sbe-all.jar from submodule
+- `generate:sbe` - Generate SBE schema from Orchestra XML
+- `test:encode` - Run SBE encode tests
+- `test:decode` - Run SBE decode tests
 
 ## 📄 Related Documentation
 
