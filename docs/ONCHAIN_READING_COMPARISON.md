@@ -2,11 +2,11 @@
 
 ## Overview
 
-When building smart contracts with embedded FIX descriptors, you need to read and verify field values onchain. This guide describes the Merkle proof verification approach for efficient field access.
+When building smart contracts with embedded FIX descriptors, you need to read and verify field values onchain. This guide describes how to use Merkle proof verification for efficient field access.
 
-**Approach:** Store SBE-encoded descriptors via SSTORE2 and use Merkle proof verification for field access. This provides constant gas costs regardless of descriptor size.
+**Approach:** Store SBE-encoded descriptors via SSTORE2 and use Merkle proof verification for field access. This provides logarithmic gas cost scaling (O(log n)) with descriptor size.
 
-**Gas Performance:** Merkle proof verification costs **6k-8.5k gas** per field read, regardless of descriptor size.
+**Gas Performance:** Merkle proof verification costs **6k-12k gas** per field read, scaling logarithmically with the number of fields.
 
 ---
 
@@ -16,8 +16,8 @@ When building smart contracts with embedded FIX descriptors, you need to read an
 
 | Field Type | Gas Cost | Notes |
 |------------|----------|-------|
-| Simple field (2-field descriptor) | ~6k gas | Constant cost |
-| Simple field (16-field descriptor) | ~8.5k gas | Constant cost |
+| Simple field (2-field descriptor) | ~6k gas | Logarithmic scaling (1 proof step) |
+| Simple field (16-field descriptor) | ~8.5k gas | Logarithmic scaling (4 proof steps) |
 | Nested group field | ~7.7k gas | Same as top-level |
 
 ### Storage Costs
@@ -169,18 +169,18 @@ function verifySecurityAltId(
 
 ## Gas Performance
 
-### Constant Verification Cost
+### Logarithmic Verification Cost
 
-Merkle proof verification has **constant gas cost** regardless of descriptor size:
+Merkle proof verification has **logarithmic gas cost scaling** (O(log n)) with descriptor size:
 
 | Descriptor Size | Verification Cost | Proof Length |
 |-----------------|-------------------|--------------|
 | 2 fields | ~6k gas | 1 hash |
 | 5 fields | ~6-8k gas | 3 hashes |
 | 16 fields | ~8.5k gas | 4 hashes |
-| 50+ fields | ~10k gas | 6 hashes |
+| 50+ fields | ~12k gas | 6 hashes |
 
-**Key Insight:** Gas cost scales logarithmically with descriptor size (log₂ of number of fields), making it highly efficient for large descriptors.
+**Key Insight:** Gas cost scales logarithmically with descriptor size (log₂ of number of fields), making it highly efficient for large descriptors. The cost grows slowly - doubling the number of fields only adds ~500 gas per additional proof step.
 
 ### Storage Costs
 
@@ -194,7 +194,7 @@ Merkle proof verification has **constant gas cost** regardless of descriptor siz
 
 | Operation | Gas Cost | Notes |
 |-----------|----------|-------|
-| Simple field verification | 6k-8.5k | Constant regardless of descriptor size |
+| Simple field verification | 6k-12k | Logarithmic scaling (O(log n)) |
 | Nested group verification | 7.7k | Same as top-level |
 | Proof calldata | 1.6k-3.2k | ~100-200 bytes at 16 gas/byte |
 | **Total per access** | **~8-12k** | Includes verification + calldata |
@@ -322,10 +322,10 @@ See [MERKLE_VERIFIER.md](../contracts/docs/MERKLE_VERIFIER.md) for detailed path
 
 ### Gas Efficiency
 
-✅ **Constant gas costs** - Always 6k-8.5k gas regardless of descriptor size  
-✅ **Excellent scaling** - 16-field descriptor costs same as 2-field  
+✅ **Logarithmic gas cost scaling** - 6k-12k gas, grows slowly with descriptor size (O(log n))  
+✅ **Excellent scaling** - 16-field descriptor costs only ~40% more than 2-field  
 ✅ **Efficient nested groups** - Same cost as top-level fields  
-✅ **Predictable costs** - No surprises with large descriptors
+✅ **Predictable costs** - Cost grows logarithmically, not linearly
 
 ### Security
 
@@ -397,7 +397,7 @@ See [INTEGRATION_GUIDE.md](../contracts/docs/INTEGRATION_GUIDE.md) for complete 
 
 - [Merkle Verifier Documentation](../contracts/docs/MERKLE_VERIFIER.md) - Merkle proof generation and verification
 - [Integration Guide](../contracts/docs/INTEGRATION_GUIDE.md) - Step-by-step integration guide
-- [Gas Comparison Analysis](../contracts/docs/GAS_COMPARISON_ANALYSIS.md) - Detailed gas analysis
+- [Gas Analysis](../docs/GAS_ANALYSIS_HUMAN_READABLE.md) - Detailed gas analysis
 - [Implementation Summary](../contracts/docs/IMPLEMENTATION_SUMMARY.md) - Complete implementation overview
 
 ### Tools & SDKs

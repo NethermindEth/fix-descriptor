@@ -2,17 +2,20 @@
 
 ## Overview
 
-The FIX Merkle Verifier enables gas-efficient verification of FIX Descriptor fields using Merkle proofs. Instead of storing the full SBE descriptor onchain, only a 32-byte Merkle root is stored, and individual fields are verified with cryptographic proofs.
+The FIX Merkle Verifier enables gas-efficient verification of FIX Descriptor fields using Merkle proofs. The implementation stores SBE (Simple Binary Encoding) data via SSTORE2 and a 32-byte Merkle root. Individual fields are verified with cryptographic proofs without needing to parse the entire descriptor.
 
 ## Why Merkle Proofs?
 
-**Gas Comparison:**
-- Direct field parsing (SBE/CBOR): **12k - 80k gas** (scales with descriptor size)
-- Merkle proof verification: **6k - 8.5k gas** (constant regardless of size)
+**Gas Efficiency:**
+- Direct SBE parsing: **12k - 80k gas** (scales linearly with descriptor size)
+- Merkle proof verification: **6k - 12k gas** (logarithmic scaling: O(log n) where n is number of fields)
 
-**Savings: 2-10x cheaper** ✅
+**Benefits:**
+- Logarithmic gas cost scaling - grows slowly with descriptor size (e.g., 2 fields = ~6k, 16 fields = ~8.5k, 50 fields = ~12k)
+- Selective field verification without parsing entire descriptor
+- Cryptographic guarantees of field authenticity
 
-See [GAS_COMPARISON_ANALYSIS.md](GAS_COMPARISON_ANALYSIS.md) for detailed analysis.
+See [GAS_ANALYSIS.md](GAS_ANALYSIS.md) for detailed analysis.
 
 ## Architecture
 
@@ -118,12 +121,7 @@ contract FixDescriptorRegistry {
 }
 ```
 
-**vs SBE Storage:**
-```solidity
-// Storing 500-byte SBE via SSTORE2: ~100-200k gas ✅
-// But Merkle root is still cheaper for verification!
-mapping(bytes32 => bytes) public descriptors;
-```
+**Note:** In the actual implementation, both SBE data (via SSTORE2) and Merkle root are stored. The SBE data enables reading/parsing when needed, while the Merkle root enables efficient field verification.
 
 ### Pattern 2: Verify and Access Field
 
@@ -257,17 +255,20 @@ const value = await contract.getVerifiedField(
 
 Where `proof_length = log₂(num_leaves)`
 
-### vs CBOR Storage
+**Scaling Behavior:** Gas cost scales logarithmically with the number of fields:
+- 2 fields: 1 proof step = ~6k gas
+- 16 fields: 4 proof steps = ~8.5k gas  
+- 50+ fields: 6 proof steps = ~12k gas
 
-| Descriptor | CBOR Storage | Merkle Storage | Savings |
-|------------|--------------|----------------|---------|
-| 2 fields | 10M gas | 20k gas | **500x cheaper** ✅ |
-| 16 fields | 10M gas | 20k gas | **500x cheaper** ✅ |
+This logarithmic scaling (O(log n)) means the cost grows very slowly - doubling the number of fields only adds ~500 gas per additional proof step.
 
-| Field Access | CBOR Gas | Merkle Gas | Savings |
-|--------------|----------|------------|---------|
-| 2 fields | 12-17k | 6k | **2-3x cheaper** |
-| 16 fields | 46-80k | 8.5k | **5-9x cheaper** ✅ |
+### Storage Approach
+
+The implementation uses a hybrid approach:
+- **SBE data via SSTORE2**: ~100-200k gas (one-time, enables reading/parsing)
+- **Merkle root**: ~20k gas (one-time, enables efficient verification)
+
+Both are stored to provide flexibility: use Merkle proofs for verification, or read SBE data directly when needed.
 
 ## Security Considerations
 
@@ -301,13 +302,13 @@ function setDescriptor(bytes32 tokenId, bytes32 root) external onlyOwner {
 
 ### Unit Tests
 
-**File:** [test/GasComparison.t.sol](../test/GasComparison.t.sol)
+**File:** [test/FixDescriptorLib.t.sol](../test/FixDescriptorLib.t.sol)
 
-25 tests comparing Merkle vs CBOR for all test cases.
+Tests for Merkle verification functionality across various descriptor sizes.
 
 Run tests:
 ```bash
-forge test --match-contract GasComparisonTest --gas-report
+forge test --match-contract FixDescriptorLibTest --gas-report
 ```
 
 ### Test Data Generation
@@ -328,14 +329,14 @@ npm run generate-test-data
 
 ## Best Practices
 
-### 1. Store Root, Not CBOR
+### 1. Store Root for Verification
 
 ```solidity
-// ✅ Good: 20k gas storage
+// ✅ Good: Store Merkle root for efficient verification (20k gas)
 mapping(uint256 => bytes32) public roots;
 
-// ❌ Bad: 10M gas storage
-mapping(uint256 => bytes) public descriptors;
+// ✅ Also store SBE via SSTORE2 for reading when needed (~100-200k gas)
+// This is handled automatically by FixDescriptorLib
 ```
 
 ### 2. Verify Offchain First
@@ -375,26 +376,21 @@ const data = {
 
 1. **Proof Size** - Grows with log₂(fields), adds calldata cost
 2. **Proof Generation** - Requires offchain computation
-3. **No Enumeration** - Can't list all fields onchain (need CBOR for that)
+3. **No Enumeration** - Can't list all fields onchain without reading SBE data
 4. **Client Complexity** - Clients must generate/verify proofs
 
-## Recommendation
+## When to Use Merkle Verification
 
-**Use Merkle roots when:**
+Merkle proof verification is ideal when:
 - ✅ Large descriptors (10+ fields)
-- ✅ Infrequent field access
-- ✅ Storage cost is critical
-- ✅ Selective disclosure needed
+- ✅ Selective field access (don't need all fields)
+- ✅ Gas efficiency is important
+- ✅ Cryptographic guarantees are needed
 
-**Use CBOR when:**
-- ⚠️ Very small descriptors (2-3 fields)
-- ⚠️ Frequent access to ALL fields
-- ⚠️ Onchain enumeration required
-
-For most production use cases, **Merkle roots are the clear winner** (2-10x gas savings).
+For cases where you need to enumerate all fields or parse the entire descriptor, you can read the SBE data directly using `getFixSBEChunk()`.
 
 ## Further Reading
 
-- [Gas Comparison Analysis](GAS_COMPARISON_ANALYSIS.md) - Detailed cost breakdown
+- [Gas Analysis](GAS_ANALYSIS.md) - Detailed cost breakdown
 - [TypeScript Implementation](../../packages/fixdescriptorkit-typescript/src/merkle.ts)
 - [Merkle Tree Specification](https://en.wikipedia.org/wiki/Merkle_tree)

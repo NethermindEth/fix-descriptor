@@ -8,7 +8,7 @@ Comprehensive documentation for the FIX Descriptor EVM contracts.
 
 1. 📖 [BUILD_AND_TEST.md](BUILD_AND_TEST.md) - Setup, build, and test instructions
 2. 📖 [INTEGRATION_GUIDE.md](INTEGRATION_GUIDE.md) - Step-by-step integration guide
-3. 📊 [GAS_COMPARISON_ANALYSIS.md](GAS_COMPARISON_ANALYSIS.md) - Gas cost analysis
+3. 📊 [GAS_ANALYSIS.md](GAS_ANALYSIS.md) - Gas cost analysis
 4. 🔐 [MERKLE_VERIFIER.md](MERKLE_VERIFIER.md) - Merkle proof verification guide ⭐
 
 ## Documentation Index
@@ -26,7 +26,7 @@ Comprehensive documentation for the FIX Descriptor EVM contracts.
 | Document | Description | Gas Cost |
 |----------|-------------|----------|
 | [MERKLE_VERIFIER.md](MERKLE_VERIFIER.md) | Merkle proof field verification | 6k-8.5k gas ⭐ |
-| [GAS_COMPARISON_ANALYSIS.md](GAS_COMPARISON_ANALYSIS.md) | Detailed gas cost analysis | - |
+| [GAS_ANALYSIS.md](GAS_ANALYSIS.md) | Detailed gas cost analysis | - |
 
 ### Implementation Details
 
@@ -75,7 +75,7 @@ The project implements a **gas-efficient approach** for accessing FIX Descriptor
 
 **Key Advantage:** Constant verification cost regardless of descriptor size.
 
-See [GAS_COMPARISON_ANALYSIS.md](GAS_COMPARISON_ANALYSIS.md) for complete analysis.
+See [GAS_ANALYSIS.md](GAS_ANALYSIS.md) for complete analysis.
 
 ## Contract Reference
 
@@ -242,6 +242,6 @@ When adding new features:
 ## Questions?
 
 - 📖 Read [BUILD_AND_TEST.md](BUILD_AND_TEST.md) for setup issues
-- 📊 Read [GAS_COMPARISON_ANALYSIS.md](GAS_COMPARISON_ANALYSIS.md) for gas questions
+- 📊 Read [GAS_ANALYSIS.md](GAS_ANALYSIS.md) for gas questions
 - 🔍 Check [MERKLE_VERIFIER.md](MERKLE_VERIFIER.md) for implementation details
 - 💡 See [INTEGRATION_GUIDE.md](INTEGRATION_GUIDE.md) for integration patterns

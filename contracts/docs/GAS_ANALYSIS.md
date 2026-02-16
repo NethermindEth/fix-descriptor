@@ -6,7 +6,7 @@
 
 **Key Benefits:**
 - **Efficient storage:** SSTORE2 makes SBE storage affordable (~100-200k gas)
-- **Constant verification cost:** 6k-8.5k gas per field verification regardless of descriptor size
+- **Logarithmic verification cost:** 6k-12k gas per field verification (scales as O(log n) where n is number of fields)
 - **Scalable:** Handles descriptors with 50+ fields efficiently
 - **Cryptographic security:** Merkle proofs ensure field authenticity
 
@@ -21,7 +21,7 @@
 | 16 fields | ~8.5k gas | 4 hashes | Logarithmic scaling |
 | Nested groups | ~7.7k gas | 2-3 hashes | Same as top-level |
 
-**Key Insight:** Gas cost is constant regardless of descriptor size - only the proof length matters (log₂ of number of fields).
+**Key Insight:** Gas cost scales logarithmically with descriptor size - proof length grows as log₂(number of fields), making it highly efficient even for large descriptors.
 
 ### Storage Costs
 
@@ -68,13 +68,13 @@ Where `proof_length = log₂(num_leaves)`
 - Total: **~120-220k gas**
 
 **Verification:**
-- Per field: **6k-8.5k gas** (constant)
+- Per field: **6k-12k gas** (logarithmic scaling: O(log n))
 - Plus calldata: **1.6k-3.2k gas**
 - **Total per access: ~8-12k gas**
 
 **Pros:**
 - ✅ Efficient storage with SSTORE2
-- ✅ Constant verification cost
+- ✅ Logarithmic verification cost scaling (very efficient)
 - ✅ Can read SBE data if needed
 - ✅ Cryptographic guarantees
 
@@ -84,14 +84,14 @@ Where `proof_length = log₂(num_leaves)`
 
 ## Key Insights
 
-### 1. Constant Verification Cost
+### 1. Logarithmic Verification Cost
 
-Merkle proof verification has **constant gas cost** regardless of descriptor size:
-- Small descriptor (2 fields): ~6k gas
-- Large descriptor (16 fields): ~8.5k gas
-- Very large descriptor (50+ fields): ~10k gas
+Merkle proof verification has **logarithmic gas cost scaling** (O(log n)) with descriptor size:
+- Small descriptor (2 fields): ~6k gas (1 proof step)
+- Large descriptor (16 fields): ~8.5k gas (4 proof steps)
+- Very large descriptor (50+ fields): ~12k gas (6 proof steps)
 
-This is because proof length grows logarithmically: log₂(2) = 1, log₂(16) = 4, log₂(50) ≈ 6.
+The cost grows slowly because proof length grows logarithmically: log₂(2) = 1, log₂(16) = 4, log₂(50) ≈ 6. This means doubling the number of fields only adds ~500 gas per additional proof step.
 
 ### 2. SSTORE2 Makes SBE Storage Affordable
 
@@ -136,7 +136,7 @@ If we were to parse SBE directly onchain:
 - **Cost:** Would scale with descriptor size (O(n) or O(log n) with binary search)
 - **Estimated:** 20k-100k+ gas depending on descriptor size
 
-**Merkle advantage:** Constant 6k-8.5k gas vs variable 20k-100k+ gas
+**Merkle advantage:** Logarithmic scaling (6k-12k gas) vs linear scaling (20k-100k+ gas)
 
 ### vs Storing Full Descriptor in Storage
 
@@ -152,7 +152,7 @@ If we stored descriptor in regular storage:
 ### 1. Use Merkle Proofs for Verification
 
 ```solidity
-// ✅ Efficient: Constant gas cost
+// ✅ Efficient: Logarithmic gas cost scaling
 function verifyField(
     bytes calldata pathCBOR,
     bytes calldata value,
@@ -231,7 +231,7 @@ function verifyBatch(FieldProof[] calldata proofs) external {
 The **SBE + Merkle approach** provides optimal gas efficiency:
 
 1. **Storage:** SSTORE2 makes SBE storage affordable (~100-200k gas)
-2. **Verification:** Constant cost regardless of descriptor size (6k-8.5k gas)
+2. **Verification:** Logarithmic cost scaling (6k-12k gas, O(log n) where n is number of fields)
 3. **Scalability:** Handles descriptors of any size efficiently
 4. **Security:** Cryptographic guarantees via Merkle proofs
 

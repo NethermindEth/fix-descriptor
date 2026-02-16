@@ -359,7 +359,7 @@ This project is licensed under the ISC License - see the [LICENSE](LICENSE) file
 Comprehensive documentation for smart contracts is available in [contracts/docs/](./contracts/docs/):
 
 - 📖 **[Getting Started](./contracts/docs/BUILD_AND_TEST.md)** - Setup, build, and test instructions
-- 📊 **[Gas Comparison Analysis](./contracts/docs/GAS_COMPARISON_ANALYSIS.md)** - Merkle proof verification gas costs
+- 📊 **[Gas Analysis](./contracts/docs/GAS_ANALYSIS.md)** - Merkle proof verification gas costs
 - ⭐ **[Merkle Verifier Guide](./contracts/docs/MERKLE_VERIFIER.md)** - Proof-based verification (6k-8.5k gas, **recommended**)
 - 📋 **[Documentation Index](./contracts/docs/README.md)** - Complete documentation overview
 

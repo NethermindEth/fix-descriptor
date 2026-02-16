@@ -198,7 +198,7 @@ cat gas_report.txt | grep -E "verify|setDescriptor"
 - Descriptor storage: ~20k gas (Merkle root) + 100-200k gas (SBE via SSTORE2)
 - **Verification savings: 2-10x** compared to direct parsing ✅
 
-See [GAS_COMPARISON_ANALYSIS.md](GAS_COMPARISON_ANALYSIS.md) for detailed analysis.
+See [GAS_ANALYSIS.md](GAS_ANALYSIS.md) for detailed analysis.
 
 ### Analyze Specific Field Access
 
@@ -428,7 +428,7 @@ forge test --root contracts --match-path "test/AssetToken*"
 
 - 📖 Read [MERKLE_VERIFIER.md](MERKLE_VERIFIER.md) - Learn about Merkle verification
 - 📖 Read [INTEGRATION_GUIDE.md](INTEGRATION_GUIDE.md) - Integration guide
-- 📊 Read [GAS_COMPARISON_ANALYSIS.md](GAS_COMPARISON_ANALYSIS.md) - Understand gas trade-offs
+- 📊 Read [GAS_ANALYSIS.md](GAS_ANALYSIS.md) - Understand gas trade-offs
 - 💡 See [../src/examples/](../src/examples/) - Example implementations
 
 ## Help

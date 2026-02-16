@@ -215,7 +215,7 @@ await contract.setFixDescriptor({
 ### Documentation
 - [contracts/docs/MERKLE_VERIFIER.md](MERKLE_VERIFIER.md) - Merkle verification guide
 - [contracts/docs/INTEGRATION_GUIDE.md](INTEGRATION_GUIDE.md) - Integration guide
-- [contracts/docs/GAS_COMPARISON_ANALYSIS.md](GAS_COMPARISON_ANALYSIS.md) - Gas analysis
+- [contracts/docs/GAS_ANALYSIS.md](GAS_ANALYSIS.md) - Gas analysis
 - [contracts/docs/IMPLEMENTATION_SUMMARY.md](IMPLEMENTATION_SUMMARY.md) - This file
 
 ## Test Results
