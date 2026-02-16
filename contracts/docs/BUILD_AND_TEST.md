@@ -24,7 +24,7 @@
 ## Project Structure
 
 ```
-fixdescriptorkit-evm/
+fix-descriptor/
 ├── contracts/              # Solidity contracts
 │   ├── src/               # Source contracts
 │   │   ├── generated/     # Auto-generated test data (gitignored)
@@ -52,7 +52,7 @@ fixdescriptorkit-evm/
 ```bash
 # Clone the repository
 git clone <repo-url>
-cd fixdescriptorkit-evm
+cd fix-descriptor
 
 # Install Foundry dependencies (submodules)
 forge install

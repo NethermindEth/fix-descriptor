@@ -2066,7 +2066,7 @@ export default function SpecPage() {
                 <div>
                   <strong style={{ color: 'rgba(255,255,255,0.9)', fontSize: '0.9rem' }}>Open Source Code:</strong>
                   <div style={{ color: 'rgba(255,255,255,0.7)', fontSize: '0.9rem', marginTop: '0.25rem' }}>
-                    View the complete source code on <a href="https://github.com/swapnilraj/fix-descriptor" target="_blank" rel="noopener noreferrer" style={{ color: 'rgba(59, 130, 246, 1)', textDecoration: 'none' }}>GitHub</a>, including:
+                    View the complete source code on <a href="https://github.com/NethermindEth/fix-descriptor" target="_blank" rel="noopener noreferrer" style={{ color: 'rgba(59, 130, 246, 1)', textDecoration: 'none' }}>GitHub</a>, including:
                     <ul style={{ marginTop: '0.5rem', marginBottom: 0, paddingLeft: '1.5rem' }}>
                       <li>TypeScript library (packages/fixdescriptorkit-typescript)</li>
                       <li>Solidity smart contracts (contracts/src)</li>
@@ -2130,7 +2130,7 @@ export default function SpecPage() {
               <Link href="/explorer" style={{ color: 'rgba(255,255,255,0.6)', textDecoration: 'none', minHeight: '44px', display: 'flex', alignItems: 'center' }}>
                 Try the Explorer
               </Link>
-              <a href="https://github.com/swapnilraj/fix-descriptor" style={{ color: 'rgba(255,255,255,0.6)', textDecoration: 'none', minHeight: '44px', display: 'flex', alignItems: 'center' }}>
+              <a href="https://github.com/NethermindEth/fix-descriptor" style={{ color: 'rgba(255,255,255,0.6)', textDecoration: 'none', minHeight: '44px', display: 'flex', alignItems: 'center' }}>
                 View on GitHub
               </a>
             </p>

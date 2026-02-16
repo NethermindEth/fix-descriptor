@@ -83,7 +83,7 @@ You'll need these for the web app configuration.
 
 ### Option 2: Deploy from apps/web directory (Alternative)
 ```bash
-cd /Users/swp/dev/swapnilraj/fixdescriptorkit-evm/apps/web
+cd fix-descriptor/apps/web
 vercel --prod
 ```
 
@@ -187,7 +187,7 @@ echo "FIXPARSER_LICENSE_KEY=..." >> .env.local
 2) Deploy contracts
 
 ```bash
-cd /Users/swp/dev/swapnilraj/fixdescriptorkit-evm/contracts
+cd fix-descriptor/contracts
 forge script script/DeployAssetToken.s.sol \
   --rpc-url https://ethereum-hoodi-rpc.publicnode.com \
   --broadcast \
@@ -206,7 +206,7 @@ echo "NEXT_PUBLIC_TOKEN_FACTORY_ADDRESS=0x5678..." >> .env.local
 4) Start the dev server
 
 ```bash
-cd /Users/swp/dev/swapnilraj/fixdescriptorkit-evm
+cd fix-descriptor
 npm run dev
 ```
 
@@ -248,7 +248,7 @@ touch .env.local
 Sepolia Testnet (recommended):
 
 ```bash
-cd /Users/swp/dev/swapnilraj/fixdescriptorkit-evm/contracts
+cd fix-descriptor/contracts
 forge script script/DeployAssetToken.s.sol \
   --rpc-url https://ethereum-sepolia-rpc.publicnode.com \
   --broadcast \

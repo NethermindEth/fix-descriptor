@@ -22,7 +22,7 @@ A comprehensive toolkit for converting FIX (Financial Information eXchange) prot
 ## 📁 Project Structure
 
 ```
-fixdescriptorkit-evm/
+fix-descriptor/
 ├── packages/
 │   └── fixdescriptorkit-typescript/    # Core TypeScript library
 ├── apps/
@@ -64,8 +64,8 @@ fixdescriptorkit-evm/
 
 ```bash
 # Clone the repository (with submodules for OpenZeppelin)
-git clone --recurse-submodules https://github.com/your-username/fixdescriptorkit-evm.git
-cd fixdescriptorkit-evm
+git clone --recurse-submodules https://github.com/NethermindEth/fix-descriptor.git
+cd fix-descriptor
 
 # If you already cloned without submodules, run:
 # git submodule update --init --recursive
@@ -387,8 +387,8 @@ Comprehensive documentation for smart contracts is available in [contracts/docs/
 
 For questions, issues, or contributions:
 
-- 🐛 Issues: [GitHub Issues](https://github.com/swapnilraj/fixdescriptorkit-evm/issues)
-- 💬 Discussions: [GitHub Discussions](https://github.com/swapnilraj/fixdescriptorkit-evm/discussions)
+- 🐛 Issues: [GitHub Issues](https://github.com/NethermindEth/fix-descriptor/issues)
+- 💬 Discussions: [GitHub Discussions](https://github.com/NethermindEth/fix-descriptor/discussions)
 
 ---
 

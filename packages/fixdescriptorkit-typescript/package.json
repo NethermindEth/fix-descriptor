@@ -67,12 +67,12 @@
   "license": "ISC",
   "repository": {
     "type": "git",
-    "url": "git+https://github.com/swapnilraj/fixdescriptorkit-evm.git",
+    "url": "git+https://github.com/NethermindEth/fix-descriptor.git",
     "directory": "packages/fixdescriptorkit-typescript"
   },
   "homepage": "https://erc-fix.com",
   "bugs": {
-    "url": "https://github.com/swapnilraj/fixdescriptorkit-evm/issues"
+    "url": "https://github.com/NethermindEth/fix-descriptor/issues"
   },
   "dependencies": {
     "agrona": "file:./src/sbe/agrona-ts",

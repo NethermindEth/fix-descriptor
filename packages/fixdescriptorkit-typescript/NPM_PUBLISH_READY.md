@@ -12,9 +12,9 @@ Your TypeScript package `@fixdescriptorkit/ts-sdk` is now fully configured and r
 - License: ISC
 
 ✅ **Repository & Links**
-- GitHub: https://github.com/swapnilraj/fixdescriptorkit-evm
+- GitHub: https://github.com/NethermindEth/fix-descriptor
 - Homepage: https://fixdescriptor.vercel.app
-- Issues: https://github.com/swapnilraj/fixdescriptorkit-evm/issues
+- Issues: https://github.com/NethermindEth/fix-descriptor/issues
 
 ✅ **Build Configuration**
 - TypeScript compilation to `dist/src/`
@@ -49,7 +49,7 @@ npm login
 ### 2. Verify the package build
 
 ```bash
-cd /Users/swp/dev/swapnilraj/fixdescriptorkit-evm/packages/fixdescriptorkit-typescript
+cd fix-descriptor/packages/fixdescriptorkit-typescript
 npm run build
 ```
 
@@ -106,7 +106,7 @@ console.log('Merkle Root:', root);
 
 - **Full Publishing Guide**: See `PUBLISHING.md` for detailed instructions
 - **Package README**: See `README.md` for complete API documentation
-- **Repository**: https://github.com/swapnilraj/fixdescriptorkit-evm
+- **Repository**: https://github.com/NethermindEth/fix-descriptor
 
 ## 🔔 Important Notes
 

@@ -429,7 +429,7 @@ graph TB
 
 ```bash
 # Clone repository
-git clone https://github.com/swapnilraj/fix-descriptor.git
+git clone https://github.com/NethermindEth/fix-descriptor.git
 cd fix-descriptor
 
 # Install dependencies
@@ -477,5 +477,5 @@ forge script script/DeployFixDescriptorKit.s.sol --rpc-url $RPC_URL --broadcast
 For more information, see:
 - [Technical Specification](https://fixdescriptor.vercel.app/spec)
 - [Deployment Guide](./DEPLOYMENT.md)
-- [GitHub Repository](https://github.com/swapnilraj/fix-descriptor)
+- [GitHub Repository](https://github.com/NethermindEth/fix-descriptor)
 - [Live Demo](https://fixdescriptor.vercel.app)

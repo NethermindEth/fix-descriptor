@@ -4358,7 +4358,7 @@ export default function Page() {
           </p>
           <div style={{ display: 'flex', flexWrap: 'wrap', justifyContent: 'center', gap: 'clamp(1rem, 3vw, 2rem)', fontSize: 'clamp(0.8rem, 2vw, 0.875rem)' }}>
               <a 
-                href="https://github.com/swapnilraj/fix-descriptor" 
+                href="https://github.com/NethermindEth/fix-descriptor" 
                 style={{ color: 'rgba(255,255,255,0.4)', transition: 'color 0.2s' }}
                 onMouseEnter={(e) => e.currentTarget.style.color = 'rgba(255,255,255,0.7)'}
                 onMouseLeave={(e) => e.currentTarget.style.color = 'rgba(255,255,255,0.4)'}

@@ -157,7 +157,7 @@ Based on comprehensive gas analysis, **Merkle proof verification is the recommen
 ```bash
 # Clone and install
 git clone <repo>
-cd fixdescriptorkit-evm
+cd fix-descriptor
 forge install
 cd packages/fixdescriptorkit-typescript && npm install
 
