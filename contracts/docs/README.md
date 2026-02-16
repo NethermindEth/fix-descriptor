@@ -92,7 +92,6 @@ See [GAS_COMPARISON_ANALYSIS.md](GAS_COMPARISON_ANALYSIS.md) for complete analys
 
 | Contract | Description | Tests |
 |----------|-------------|-------|
-| `BondDescriptorMerkle.sol` | ERC20 bond token example | Included |
 | `AssetTokenERC20.sol` | ERC20 with FIX descriptors | Included |
 | `AssetTokenERC721.sol` | ERC721 with FIX descriptors | Included |
 | `AssetTokenFactory.sol` | Token factory pattern | Included |

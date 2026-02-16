@@ -21,7 +21,7 @@ This is the **core transformation engine** for FixDescriptorKit. It handles:
 
 **CBOR Usage:** The library uses CBOR encoding internally for **Merkle path encoding only**. Specifically:
 - The `encodePathCBOR()` function (internal) uses the `cbor-x` library to encode path arrays (e.g., `[15]` → `0x811837`, `[454, 0, 455]` → CBOR bytes)
-- These CBOR-encoded paths are used in Merkle leaf computation: `keccak256(pathCBOR || valueBytes)`
+- These CBOR-encoded paths are used in Merkle leaf computation: `keccak256(pathCBOR || "=" || valueBytes)`
 - The canonical tree itself is a JavaScript object, not CBOR-encoded
 
 ## 🎯 Use Cases
@@ -156,7 +156,7 @@ Enumerates all fields in the canonical tree as Merkle leaves.
   - `path` - Array of integers identifying field location
   - `pathCBOR` - CBOR-encoded path (for hashing)
   - `value` - Field value as string
-  - `hash` - keccak256(pathCBOR || valueBytes)
+  - `hash` - keccak256(pathCBOR || "=" || valueBytes)
 
 **Example:**
 ```typescript
@@ -210,7 +210,7 @@ const root = computeRoot(leaves);
    - If odd node, promote to next level (no duplicate hashing)
 3. Return final root hash
 
-**Note:** The `pathCBOR` field in leaves uses CBOR encoding for the path array. When used onchain, this is passed as `pathSBE` to the `verifyField` function (the parameter name reflects SBE usage, but the encoding format is CBOR for path arrays).
+**Note:** The `pathCBOR` field in leaves uses CBOR encoding for the path array. When used onchain, this is passed as `pathCBOR` to the `verifyField` function.
 
 ---
 
@@ -266,7 +266,7 @@ console.log(`Proof valid: ${isValid}`); // true
 ```
 
 **Verification Process:**
-1. Compute leaf hash: `keccak256(pathCBOR || valueBytes)`
+1. Compute leaf hash: `keccak256(pathCBOR || "=" || valueBytes)`
 2. Walk proof tree using sibling hashes and directions
 3. Compare final computed root with expected root
 
@@ -318,7 +318,7 @@ interface MerkleLeaf {
   path: number[];                            // Field path
   pathCBOR: Uint8Array;                      // CBOR-encoded path
   value: string;                             // Field value
-  hash: string;                              // keccak256(pathCBOR || value)
+  hash: string;                              // keccak256(pathCBOR || "=" || value)
 }
 
 // Merkle proof

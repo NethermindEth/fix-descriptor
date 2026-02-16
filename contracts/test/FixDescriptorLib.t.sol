@@ -215,10 +215,10 @@ contract FixDescriptorLibTest is Test {
         // Set up descriptor with a simple root (single leaf for simplicity)
         address sbePtr = SSTORE2.write(sampleSBE);
         
-        // Create a simple merkle tree with one leaf: hash(pathSBE || value)
-        bytes memory pathSBE = hex"01";  // Simple SBE-encoded path
+        // Create a simple merkle tree with one leaf: hash(pathCBOR || "=" || value)
+        bytes memory pathCBOR = hex"01";  // Simple CBOR-encoded path
         bytes memory value = hex"37";
-        bytes32 leaf = keccak256(abi.encodePacked(pathSBE, value));
+        bytes32 leaf = keccak256(abi.encodePacked(pathCBOR, "=", value));
         
         // For a single-leaf tree, the root IS the leaf
         bytes32 testRoot = leaf;
@@ -238,7 +238,7 @@ contract FixDescriptorLibTest is Test {
         bool[] memory directions = new bool[](0);
 
         bool result = testToken.verifyFieldProofWrapper(
-            pathSBE,
+            pathCBOR,
             value,
             proof,
             directions
@@ -299,12 +299,12 @@ contract TestToken {
     }
 
     function verifyFieldProofWrapper(
-        bytes calldata pathSBE,
+        bytes calldata pathCBOR,
         bytes calldata value,
         bytes32[] calldata proof,
         bool[] calldata directions
     ) external view returns (bool) {
-        return _fixDescriptor.verifyFieldProof(pathSBE, value, proof, directions);
+        return _fixDescriptor.verifyFieldProof(pathCBOR, value, proof, directions);
     }
 }
 

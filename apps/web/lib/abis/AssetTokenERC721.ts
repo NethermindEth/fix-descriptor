@@ -447,7 +447,7 @@ export const abi = [
     "name": "verifyField",
     "inputs": [
       {
-        "name": "pathSBE",
+        "name": "pathCBOR",
         "type": "bytes",
         "internalType": "bytes"
       },

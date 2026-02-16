@@ -199,7 +199,7 @@ sequenceDiagram
     API->>Library: enumerateLeaves(canonical)
     Library-->>API: MerkleLeaf[]
     API->>Library: generateProof(leaves, path)
-    Library-->>API: {pathSBE, valueBytes, proof, directions}
+    Library-->>API: {pathCBOR, valueBytes, proof, directions}
     API-->>Client: Merkle proof data
 ```
 
@@ -214,8 +214,8 @@ sequenceDiagram
     
     Client->>AssetContract: getFixDescriptor()
     AssetContract-->>Client: FixDescriptor
-    Client->>AssetContract: verifyField(pathSBE, value, proof, directions)
-    AssetContract->>Verifier: verify(root, pathSBE, value, proof, directions)
+    Client->>AssetContract: verifyField(pathCBOR, value, proof, directions)
+    AssetContract->>Verifier: verify(root, pathCBOR, value, proof, directions)
     Verifier->>Verifier: Compute leaf hash
     Verifier->>Verifier: Reconstruct root from proof
     Verifier->>Verifier: Compare with stored root

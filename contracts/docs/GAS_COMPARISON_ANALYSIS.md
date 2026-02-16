@@ -106,7 +106,7 @@ SSTORE2 (bytecode storage) costs:
 ### 3. Proof Calldata Overhead
 
 Each verification requires proof data in calldata:
-- `pathSBE`: ~10-20 bytes (CBOR-encoded path)
+- `pathCBOR`: ~10-20 bytes (CBOR-encoded path)
 - `valueBytes`: 5-50 bytes (field value)
 - `proof`: 32 bytes × proof_length (typically 2-4 hashes)
 - `directions`: proof_length bits (minimal)
@@ -154,14 +154,14 @@ If we stored descriptor in regular storage:
 ```solidity
 // ✅ Efficient: Constant gas cost
 function verifyField(
-    bytes calldata pathSBE,
+    bytes calldata pathCBOR,
     bytes calldata value,
     bytes32[] calldata proof,
     bool[] calldata directions
 ) external view returns (bool) {
     return FixMerkleVerifier.verify(
         _fixDescriptor.getRoot(),
-        pathSBE,
+        pathCBOR,
         value,
         proof,
         directions

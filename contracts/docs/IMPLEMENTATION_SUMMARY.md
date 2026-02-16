@@ -24,13 +24,6 @@ Successfully implemented a complete, gas-efficient onchain FIX descriptor system
 
 ### 2. Example Implementations
 
-#### BondDescriptorMerkle ([src/examples/BondDescriptorMerkle.sol](src/examples/BondDescriptorMerkle.sol))
-- Complete ERC20 bond token example
-- Demonstrates Merkle proof verification patterns
-- Bond-specific field readers (symbol, coupon, maturity)
-- Security alternative ID group access
-- **323 lines** of practical example code
-
 #### AssetTokenERC20 ([src/AssetTokenERC20.sol](src/AssetTokenERC20.sol))
 - ERC20 token with FIX descriptor support
 - Uses FixDescriptorLib for embedded storage
@@ -86,10 +79,10 @@ Successfully implemented a complete, gas-efficient onchain FIX descriptor system
 ### Path-Based Field Access
 ```solidity
 // Simple field: [tag]
-bytes memory pathSBE = abi.encodePacked(uint8(0x81), uint8(0x18), uint8(55)); // Symbol
+bytes memory pathCBOR = abi.encodePacked(uint8(0x81), uint8(0x18), uint8(55)); // Symbol
 
 // Group field: [groupTag, index, fieldTag]
-bytes memory pathSBE = abi.encodePacked(
+bytes memory pathCBOR = abi.encodePacked(
     uint8(0x83),  // Array of 3 elements
     uint8(0x19), uint16(454),  // SecurityAltID group
     uint8(0),     // First entry
@@ -156,12 +149,12 @@ contract MyToken is ERC20, IFixDescriptor {
     }
     
     function verifyField(
-        bytes calldata pathSBE,
+        bytes calldata pathCBOR,
         bytes calldata value,
         bytes32[] calldata proof,
         bool[] calldata directions
     ) external view override returns (bool) {
-        return _fixDescriptor.verifyFieldProof(pathSBE, value, proof, directions);
+        return _fixDescriptor.verifyFieldProof(pathCBOR, value, proof, directions);
     }
     
     // ... other interface functions
@@ -210,7 +203,6 @@ await contract.setFixDescriptor({
 - [contracts/src/FixMerkleVerifier.sol](src/FixMerkleVerifier.sol) - Merkle verifier
 - [contracts/src/IFixDescriptor.sol](src/IFixDescriptor.sol) - Interface
 - [contracts/src/SSTORE2.sol](src/SSTORE2.sol) - Storage utility
-- [contracts/src/examples/BondDescriptorMerkle.sol](src/examples/BondDescriptorMerkle.sol) - Example
 - [contracts/src/AssetTokenERC20.sol](src/AssetTokenERC20.sol) - ERC20 example
 - [contracts/src/AssetTokenERC721.sol](src/AssetTokenERC721.sol) - ERC721 example
 - [contracts/src/AssetTokenFactory.sol](src/AssetTokenFactory.sol) - Factory example

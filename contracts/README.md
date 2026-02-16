@@ -30,7 +30,6 @@ contracts/src/
 ├── AssetTokenERC721.sol            # Example ERC721 with embedded descriptor
 ├── AssetTokenFactory.sol           # Factory for deploying asset tokens
 └── examples/
-    ├── BondDescriptorReader.sol    # Advanced usage example
     ├── AssetTokenERC20Upgradeable.sol   # Upgradeable ERC20 example
     └── AssetTokenERC721Upgradeable.sol  # Upgradeable ERC721 example
 ```
@@ -99,7 +98,7 @@ interface IFixDescriptor {
     function getFixDescriptor() external view returns (FixDescriptor memory);
     function getFixRoot() external view returns (bytes32);
     function verifyField(
-        bytes calldata pathSBE,
+        bytes calldata pathCBOR,
         bytes calldata value,
         bytes32[] calldata proof,
         bool[] calldata directions

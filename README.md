@@ -147,12 +147,12 @@ contract MyBondToken is ERC20, Ownable, IFixDescriptor {
     }
     
     function verifyField(
-        bytes calldata pathSBE,
+        bytes calldata pathCBOR,
         bytes calldata value,
         bytes32[] calldata proof,
         bool[] calldata directions
     ) external view returns (bool) {
-        return _fixDescriptor.verifyFieldProof(pathSBE, value, proof, directions);
+        return _fixDescriptor.verifyFieldProof(pathCBOR, value, proof, directions);
     }
 }
 ```
@@ -310,11 +310,11 @@ Asset contracts implementing `IFixDescriptor` provide:
 
 - `getFixDescriptor()` - Returns the complete descriptor struct with `fixSBEPtr` and `fixSBELen` fields
 - `getFixRoot()` - Returns the Merkle root commitment
-- `verifyField(pathSBE, value, proof, directions)` - Verifies a field against the commitment
+- `verifyField(pathCBOR, value, proof, directions)` - Verifies a field against the commitment
 
 #### `FixMerkleVerifier` Library
 
-- `verify(root, pathSBE, value, proof, directions)` - Core verification function
+- `verify(root, pathCBOR, value, proof, directions)` - Core verification function
 
 ## 🌐 Networks
 
@@ -359,8 +359,7 @@ This project is licensed under the ISC License - see the [LICENSE](LICENSE) file
 Comprehensive documentation for smart contracts is available in [contracts/docs/](./contracts/docs/):
 
 - 📖 **[Getting Started](./contracts/docs/BUILD_AND_TEST.md)** - Setup, build, and test instructions
-- 📊 **[Gas Comparison Analysis](./contracts/docs/GAS_COMPARISON_ANALYSIS.md)** - SBE/CBOR vs Merkle proof costs (key decision)
-- 📚 **[CBOR Parser Guide](./contracts/docs/CBOR_PARSER.md)** - Alternative CBOR field access approach (12k-80k gas)
+- 📊 **[Gas Comparison Analysis](./contracts/docs/GAS_COMPARISON_ANALYSIS.md)** - Merkle proof verification gas costs
 - ⭐ **[Merkle Verifier Guide](./contracts/docs/MERKLE_VERIFIER.md)** - Proof-based verification (6k-8.5k gas, **recommended**)
 - 📋 **[Documentation Index](./contracts/docs/README.md)** - Complete documentation overview
 

@@ -20,14 +20,14 @@ See [GAS_COMPARISON_ANALYSIS.md](GAS_COMPARISON_ANALYSIS.md) for detailed analys
 
 **Leaf Computation:**
 ```
-leaf = keccak256(pathSBE || valueBytes)
+leaf = keccak256(pathCBOR || "=" || valueBytes)
 ```
 
 Where:
-- `pathSBE`: CBOR-encoded path array (e.g., `[55]` encoded as `0x811837` or `[454, 0, 455]`)
+- `pathCBOR`: CBOR-encoded path array (e.g., `[55]` encoded as `0x811837` or `[454, 0, 455]`)
 - `valueBytes`: UTF-8 encoded field value
 
-**Note:** The parameter is named `pathSBE` to reflect its usage in the SBE context, but the path array itself is CBOR-encoded for canonical representation.
+**Note:** The path array is CBOR-encoded for canonical representation.
 
 **Parent Computation:**
 ```
@@ -47,10 +47,10 @@ parent = keccak256(leftChild || rightChild)
 }
 ```
 
-**Leaves (sorted by pathSBE bytes):**
+**Leaves (sorted by pathCBOR bytes):**
 ```
-Leaf 0: keccak256(pathSBE([55]) || "AAPL")    = 0x5f1c...
-Leaf 1: keccak256(pathSBE([223]) || "4.250")  = 0x1d71...
+Leaf 0: keccak256(pathCBOR([55]) || "=" || "AAPL")    = 0x5f1c...
+Leaf 1: keccak256(pathCBOR([223]) || "=" || "4.250")  = 0x1d71...
 ```
 
 **Root:**
@@ -68,20 +68,20 @@ Root: keccak256(Leaf 0 || Leaf 1) = 0xc5e9...
 library FixMerkleVerifier {
     /// @notice Verify a Merkle proof for a FIX field
     /// @param root The Merkle root stored onchain
-    /// @param pathSBE SBE-encoded bytes of the path array (CBOR-encoded, e.g., [55] → 0x811837)
+    /// @param pathCBOR CBOR-encoded bytes of the path array (e.g., [55] → 0x811837)
     /// @param value UTF-8 encoded field value
     /// @param proof Array of sibling hashes
     /// @param directions Array of booleans: true if current node is right child
     /// @return ok True if proof is valid
     function verify(
         bytes32 root,
-        bytes memory pathSBE,
+        bytes memory pathCBOR,
         bytes memory value,
         bytes32[] memory proof,
         bool[] memory directions
     ) internal pure returns (bool ok) {
         // 1. Compute leaf hash
-        bytes32 node = keccak256(abi.encodePacked(pathSBE, value));
+        bytes32 node = keccak256(abi.encodePacked(pathCBOR, "=", value));
 
         // 2. Walk up the tree
         for (uint256 i = 0; i < proof.length; i++) {
@@ -130,7 +130,7 @@ mapping(bytes32 => bytes) public descriptors;
 ```solidity
 function getVerifiedField(
     bytes32 tokenId,
-    bytes calldata pathSBE,
+    bytes calldata pathCBOR,
     bytes calldata valueBytes,
     bytes32[] calldata proof,
     bool[] calldata directions
@@ -139,7 +139,7 @@ function getVerifiedField(
     require(root != bytes32(0), "Descriptor not found");
 
     require(
-        FixMerkleVerifier.verify(root, pathSBE, valueBytes, proof, directions),
+        FixMerkleVerifier.verify(root, pathCBOR, valueBytes, proof, directions),
         "Invalid Merkle proof"
     );
 
@@ -151,7 +151,7 @@ function getVerifiedField(
 
 ```solidity
 struct FieldProof {
-    bytes pathSBE;
+    bytes pathCBOR;
     bytes valueBytes;
     bytes32[] proof;
     bool[] directions;
@@ -166,7 +166,7 @@ function verifyMultipleFields(
     for (uint256 i = 0; i < fields.length; i++) {
         results[i] = FixMerkleVerifier.verify(
             root,
-            fields[i].pathSBE,
+            fields[i].pathCBOR,
             fields[i].valueBytes,
             fields[i].proof,
             fields[i].directions
@@ -198,7 +198,7 @@ const leaves = enumerateLeaves(descriptor);
 //   { path: [223], pathCBOR: 0x8118df, valueBytes: 0x342e323530 },
 //   { path: [541], pathCBOR: 0x81_19021d, valueBytes: 0x3230323530363135 }
 // ]
-// Note: pathCBOR field in leaves is CBOR-encoded, but passed as pathSBE to contracts
+// Note: pathCBOR field in leaves is CBOR-encoded
 
 // 3. Compute Merkle root
 const root = computeRoot(leaves);
@@ -215,7 +215,7 @@ const proofData = generateProof(leaves, [55]); // Symbol field
 //   ],
 //   directions: [false, false]
 // }
-// Note: Use proofData.pathCBOR as pathSBE parameter when calling verifyField()
+// Note: Use proofData.pathCBOR as pathCBOR parameter when calling verifyField()
 ```
 
 ### Client-Side Workflow
@@ -234,7 +234,7 @@ const proof = generateProof(leaves, [55]); // Symbol
 // 4. Verify onchain (cheap: 6-8k gas)
 const value = await contract.getVerifiedField(
   tokenId,
-  proof.pathCBOR, // Pass as pathSBE parameter (CBOR-encoded path bytes)
+  proof.pathCBOR, // Pass as pathCBOR parameter (CBOR-encoded path bytes)
   proof.valueBytes,
   proof.proof,
   proof.directions
@@ -395,7 +395,6 @@ For most production use cases, **Merkle roots are the clear winner** (2-10x gas 
 
 ## Further Reading
 
-- [Gas Comparison Analysis](GAS_COMPARISON.md) - Detailed cost breakdown
-- [CBOR Parser](CBOR_PARSER.md) - Alternative approach
+- [Gas Comparison Analysis](GAS_COMPARISON_ANALYSIS.md) - Detailed cost breakdown
 - [TypeScript Implementation](../../packages/fixdescriptorkit-typescript/src/merkle.ts)
 - [Merkle Tree Specification](https://en.wikipedia.org/wiki/Merkle_tree)

@@ -264,7 +264,7 @@ function generateMerkle() {
   output.push('2. Proofs: Merkle proofs for commonly accessed fields');
   output.push('3. Directions: true if current node is right child, false if left child');
   output.push('');
-  output.push('Leaf computation: keccak256(pathCBOR || valueBytes)');
+  output.push('Leaf computation: keccak256(pathCBOR || "=" || valueBytes)');
   output.push('Parent computation: keccak256(left || right)');
   output.push('*/');
 
