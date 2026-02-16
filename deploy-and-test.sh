@@ -59,7 +59,7 @@ echo -e "${BLUE}🚀 Step 2: Deploying factory to Sepolia...${NC}"
 echo "   Network: $NEXT_PUBLIC_RPC_URL"
 echo ""
 
-forge script script/DeployAssetToken.s.sol \
+forge script script/DeployAssetTokenWithFactory.s.sol \
   --rpc-url $NEXT_PUBLIC_RPC_URL \
   --broadcast \
   --slow \
