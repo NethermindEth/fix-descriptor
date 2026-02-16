@@ -14,13 +14,11 @@ Successfully implemented a complete, gas-efficient onchain FIX descriptor system
 - **Merkle proof verification** integration
 - **Event emission** for descriptor updates
 - **ERC165 support** for interface detection
-- **~190 lines** of production-ready code
 
 #### FixMerkleVerifier ([src/FixMerkleVerifier.sol](src/FixMerkleVerifier.sol))
 - Cryptographic Merkle proof verification
 - Path-based field verification
 - Constant gas cost regardless of descriptor size
-- **~45 lines** of optimized verification logic
 
 ### 2. Example Implementations
 
