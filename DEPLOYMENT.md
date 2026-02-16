@@ -58,16 +58,11 @@ After deployment, call `setFixDescriptor()` with your descriptor data:
 - Deploy SBE data via DataContractFactory
 - Call `setFixDescriptor()` on your asset contract
 
-### Deploy FIX Dictionary (Optional)
-
-> **Note:** The FIX Dictionary deployment script is not currently available. Dictionary functionality may be added in a future release. For now, you can deploy asset tokens without dictionary support.
-
 ### Contract Addresses
 
 After deployment, save your contract addresses:
 - DataContractFactory: `0x...`
 - AssetTokenFactory: `0x...`
-- FixDictionary: `0x...` (for human-readable output)
 - Your AssetToken: `0x...`
 
 You'll need these for the web app configuration.
@@ -111,8 +106,6 @@ After deployment, go to your Vercel project dashboard → Settings → Environme
 - **Value:** Your deployed DataContractFactory address
 - **Name:** `NEXT_PUBLIC_ASSET_CONTRACT_ADDRESS` 
 - **Value:** Your deployed asset contract address (implementing IFixDescriptor)
-- **Name:** `NEXT_PUBLIC_DICTIONARY_ADDRESS`
-- **Value:** Your deployed FixDictionary address (required for human-readable output on new deployments)
 
 **Note:** With the new embedded architecture, you deploy your own asset contracts (ERC20, ERC721, etc.) that implement the `IFixDescriptor` interface. There is no central registry.
 
