@@ -1,3 +1,4 @@
+import { describe, test, expect } from 'vitest';
 import { StringBuilder } from "../src/index";
 
 describe("testing StringBuilder file", () => {

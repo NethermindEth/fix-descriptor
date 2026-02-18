@@ -131,12 +131,19 @@ export function parseFixDescriptor(raw: string, opts?: { allowSOH?: boolean; sch
   const allowSOH = opts?.allowSOH ?? true;
   const schema = opts?.schema ?? {};
 
+  // Normalize separators before parsing (handles newlines, pipes, SOH)
+  const normalized = allowSOH
+    ? raw
+        .replace(/\r?\n/g, '\u0001')  // convert newlines to SOH
+        .replace(/\|/g, '\u0001')  // convert pipes to SOH
+    : raw;
+
   let flat: Array<{ tag: Tag; value: FixValue }> = [];
   flat = [];
   try {
     // Correct FIXParser instantiation and usage
     const parser = new FIXParser();
-    const msg = parser.parse(raw);
+    const msg = parser.parse(normalized);
     if (msg.length === 0) return {};
     const firstMsg = msg[0] as Message;
 
@@ -151,16 +158,11 @@ export function parseFixDescriptor(raw: string, opts?: { allowSOH?: boolean; sch
     flat = fx;
   } catch (error) {
     console.warn('FIXParser failed, using naive parsing:', error);
-    // normalize to SOH-separated string (license-independent)
-    const soh = allowSOH
-      ? raw
-          .replace(/\r?\n/g, '')  // remove newlines
-          .replace(/\|/g, '\u0001')  // convert pipes to SOH
-      : raw;
+    // Use already normalized string for naive parsing
     // ignore parsing errors and use naive approach
     // naive parsing to ensure we always get business fields even if fixparser is limited
     const naive: Array<{ tag: Tag; value: FixValue }> = [];
-    for (const p0 of soh.split('\u0001')) {
+    for (const p0 of normalized.split('\u0001')) {
       const p = p0.trim();
       if (!p) continue;
       const eq = p.indexOf('=');
