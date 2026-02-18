@@ -329,6 +329,26 @@ import { encodeFromInput } from 'fixdescriptorkit-typescript/sbe/encode';
 import { decodeFromInput } from 'fixdescriptorkit-typescript/sbe/decode';
 ```
 
+### SBE Test Helpers
+
+The SBE tests (`src/sbe/tests/sbe-encode-decode.test.ts`) include helper functions for automated verification:
+
+- **`roundTripTest(fixMessage, messageId)`** - Performs encode → decode round-trip and returns decoded fields
+  - Encodes FIX message to binary format
+  - Decodes binary back to fields
+  - Returns: `{ encodedBytes, decoded, decodedFields }`
+
+- **`verifyDecodedFields(fixMessage, decodedFields)`** - Automatically verifies all business fields match input
+  - Filters out session fields (8, 9, 10, 35)
+  - Handles type normalization (strings, numbers, bigints)
+  - Returns: `{ verified: string[], missing: string[], mismatched: Array<{tag, expected, actual}> }`
+
+- **`verifyFieldValue(decodedFields, tag, expectedValue)`** - Verifies a single field value with type-aware comparison
+  - Handles `<data>` elements (decode as strings) and `<field>` elements (decode based on SBE type)
+  - Normalizes values for comparison (bigint → string, number → string with precision handling)
+  - Returns: `{ matches: boolean, decodedValue?, reason? }`
+```
+
 **Orchestra exports:** `orchestraToSbe(orchestraXml, messageType)`, `orchestraToSbeFullSchema(orchestraXml)`, `extractMessageIdFromSbe(schemaXml, messageType)`.
 
 **Build:** `npm run build:sbe-jar` builds the TypeScript codec generator (`sbe-all.jar`) from the `simple-binary-encoding` submodule; `npm run generate:sbe` produces schema from Orchestra XML. Requires Java on PATH for codec generation. The SBE module also includes `serve.ts`, exposing `/encode` and `/decode` endpoints (used by the web app and Lambda).
@@ -357,6 +377,9 @@ src/
 │   ├── generator.ts   # runGenerator (SBE codec generation)
 │   ├── serve.ts       # HTTP /encode, /decode
 │   └── ...
+├── sbe/
+│   └── tests/
+│       └── sbe-encode-decode.test.ts  # SBE round-trip tests
 └── test/              # Unit tests
     ├── parse.test.ts
     ├── canonical.test.ts
@@ -412,8 +435,11 @@ interface MerkleProof {
 ## 🧪 Testing
 
 ```bash
-# Run tests
+# Run all tests
 npm test
+
+# Run SBE encode/decode round-trip tests specifically
+npm test sbe-encode-decode
 
 # Watch mode for development
 npm run dev:test
@@ -422,10 +448,22 @@ npm run dev:test
 npm test -- --coverage
 ```
 
+**Test Structure:**
+- **Unit Tests**: `test/` - Core library functions (parse, canonical, merkle)
+- **SBE Round-trip Tests**: `src/sbe/tests/sbe-encode-decode.test.ts` - Verify encode/decode correctness
+
+**SBE Round-trip Tests:**
+The SBE encode/decode tests verify that FIX messages can be encoded to binary format and decoded back to their original values. Tests include:
+- SecurityDefinition messages with Percentage fields (CouponRate)
+- Multiple Percentage fields handling
+- NewOrderSingle messages with repeating groups (when schema supports)
+- Automatic field verification via `verifyDecodedFields()` helper
+
 **Test Requirements:**
 - Set `FIXPARSER_LICENSE_KEY` environment variable
 - Tests cover all core functions with edge cases
 - Integration tests verify end-to-end pipeline
+- SBE tests verify round-trip encoding/decoding correctness
 
 ## 🔍 Examples
 
@@ -562,8 +600,8 @@ Output: `dist/` directory with compiled JavaScript and TypeScript declarations.
 
 - `build:sbe-jar` - Build sbe-all.jar from submodule
 - `generate:sbe` - Generate SBE schema from Orchestra XML
-- `test:encode` - Run SBE encode tests
-- `test:decode` - Run SBE decode tests
+- `test` - Run all tests (including SBE round-trip tests)
+- `test sbe-encode-decode` - Run SBE encode/decode round-trip tests specifically
 
 ## 📄 Related Documentation
 
