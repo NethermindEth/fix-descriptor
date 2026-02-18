@@ -471,9 +471,8 @@ function extractTemplateId(encodedMessage: string): number | undefined {
 function cleanupGeneratedCodecs(codecsDir: string): void {
     try {
         rmSync(codecsDir, { recursive: true, force: true });
-        log("cleanup", { codecsDir });
     } catch (error) {
-        log("cleanup-failed", { codecsDir, error });
+        // Ignore cleanup errors
     }
 }
 

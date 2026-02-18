@@ -49,7 +49,9 @@ export async function runGenerator(schemaXml: string): Promise<GeneratorResult> 
     }
 
     // Lambda containers allow writing to /tmp; avoid writing under package/node_modules paths.
-    const outputDir = "/tmp/sbe-codecs";
+    // Use unique directory per run to avoid conflicts between parallel tests
+    const uniqueId = `${Date.now()}-${Math.random().toString(36).substring(2, 9)}`;
+    const outputDir = `/tmp/sbe-codecs-${uniqueId}`;
     if (existsSync(outputDir)) {
         rmSync(outputDir, { recursive: true, force: true });
     }

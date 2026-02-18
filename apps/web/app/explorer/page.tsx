@@ -12,7 +12,7 @@ import { abi as AssetTokenAbi } from '@/lib/abis/AssetTokenERC20';
 import { chainFromEnv } from '@/lib/viemClient';
 import { createPublicClient, http } from 'viem';
 import { AddressLink, TransactionLink } from '@/components/BlockExplorerLink';
-import { orchestraToSbe, orchestraToSbeFullSchema, extractMessageIdFromSbe } from '@fixdescriptorkit/ts-sdk/orchestraToSbe';
+import { orchestraToSbe, orchestraToSbeFullSchema, hashOrchestraFile, extractMessageIdFromSbe } from '@fixdescriptorkit/ts-sdk/orchestraToSbe';
 import { FaSyncAlt } from 'react-icons/fa';
 
 // Extend Window interface for MetaMask
@@ -1427,7 +1427,8 @@ export default function Page() {
           initialSupply: tokenSupply,
           sbeHex: preview.sbeHex,
           root: preview.root,
-          schemaXml: fullSbeSchema || generatedSbeSchema
+          schemaXml: fullSbeSchema || generatedSbeSchema,
+          schemaHash: schemaInput.trim() ? hashOrchestraFile(schemaInput) : undefined,
         })
       });
 

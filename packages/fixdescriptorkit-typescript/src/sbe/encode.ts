@@ -1,4 +1,4 @@
-import { readFileSync, readdirSync, rmSync, statSync } from "fs";
+import { existsSync, readFileSync, readdirSync, rmSync, statSync } from "fs";
 import { dirname, resolve, sep } from "path";
 import { fileURLToPath, pathToFileURL } from "url";
 
@@ -468,9 +468,8 @@ function coerceValue(
 function cleanupGeneratedCodecs(codecsDir: string): void {
     try {
         rmSync(codecsDir, { recursive: true, force: true });
-        log("cleanup", { codecsDir });
     } catch (error) {
-        log("cleanup-failed", { codecsDir, error });
+        // Ignore cleanup errors
     }
 }
 

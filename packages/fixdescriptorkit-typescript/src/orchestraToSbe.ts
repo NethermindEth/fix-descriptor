@@ -5,6 +5,18 @@
  * This converts it to SBE format for use with the encoder
  */
 
+import { keccak256 } from 'viem';
+
+/**
+ * Compute keccak256 hash of Orchestra XML bytes (UTF-8).
+ * Use as schemaHash for FixDescriptor - ensures all parties use the same FIX dictionary.
+ */
+export function hashOrchestraFile(orchestraXml: string): `0x${string}` {
+  const encoder = new TextEncoder();
+  const bytes = encoder.encode(orchestraXml);
+  return keccak256(bytes);
+}
+
 export interface OrchestraField {
   id: string;
   name: string;
@@ -365,33 +377,43 @@ function extractNodesFromMessage(
 }
 
 /**
- * Map Orchestra field types to SBE types
+ * Map Orchestra field types to SBE types.
+ * Covers FIX 4.4 data types per spec:
+ * - Primitives: char, Boolean, float, int, String, data
+ * - int-derived: DayOfMonth, Length, NumInGroup, SeqNum, TagNum
+ * - float-derived: Amt, Price, PriceOffset, Qty, Percentage
+ * - String-derived: Currency, Exchange, Country, LocalMktDate, MonthYear,
+ *   MultipleValueString, MultipleCharValue, UTCTimeOnly, UTCTimestamp, UTCDateOnly
+ * - CodeSets (enums): handled via includes('CodeSet') -> varStringEncoding
  */
 function mapOrchestraTypeToSbe(orchestraType: string): string {
   const typeMap: Record<string, string> = {
-    // String types
+    // String types (FIX 4.4 primitives + derived)
     'String': 'varStringEncoding',
     'MultipleStringValue': 'varStringEncoding',
     'MultipleCharValue': 'varStringEncoding',
+    'MultipleValueString': 'varStringEncoding',
     'char': 'char',
-    
-    // Integer types
+
+    // Integer types (FIX 4.4 int-derived)
     'int': 'int64',
     'Int': 'int64',
     'Length': 'uint32',
     'SeqNum': 'uint32',
     'NumInGroup': 'uint16',
     'TagNum': 'uint16',
-    
-    // Numeric types
+    'DayOfMonth': 'uint32',
+
+    // Numeric types (FIX 4.4 float-derived)
     'Qty': 'int64',
     'Price': 'int64',
     'PriceOffset': 'int64',
     'Amt': 'int64',
     'float': 'float',
     'double': 'double',
-    
-    // Date/Time types
+    'Percentage': 'float',
+
+    // Date/Time types (FIX 4.4 String-derived)
     'UTCTimestamp': 'uint64',
     'UTCTimeOnly': 'uint64',
     'UTCDateOnly': 'uint32',
@@ -399,32 +421,30 @@ function mapOrchestraTypeToSbe(orchestraType: string): string {
     'MonthYear': 'uint32',
     'TZTimeOnly': 'uint64',
     'TZTimestamp': 'uint64',
-    
-    // Boolean
+
+    // Boolean (FIX 4.4 char-derived)
     'Boolean': 'uint8',
-    
-    // Raw data
+
+    // Raw data (FIX 4.4)
     'data': 'varDataEncoding',
     'XMLData': 'varDataEncoding',
-    
-    // Common FIX-specific types (CodeSets, enums, etc.)
+
+    // FIX 4.4 String-derived semantic types
     'Currency': 'varStringEncoding',
     'Exchange': 'varStringEncoding',
     'Country': 'varStringEncoding',
-    'Percentage': 'varStringEncoding'
   };
 
-  // Check if it's a variable-length string
-  if (orchestraType.toLowerCase().includes('string')) {
-    return 'varStringEncoding';
-  }
-  
-  // Check if it's a CodeSet (enum) - these should be strings
+  // CodeSets (enums) - all *CodeSet types map to variable-length strings
   if (orchestraType.includes('CodeSet')) {
     return 'varStringEncoding';
   }
 
-  // Default to varStringEncoding for unknown types (safer than int64)
+  // Variable-length string types (catch-all for String-derived)
+  if (orchestraType.toLowerCase().includes('string')) {
+    return 'varStringEncoding';
+  }
+
   return typeMap[orchestraType] || 'varStringEncoding';
 }
 

@@ -21,7 +21,8 @@ export async function POST(request: NextRequest) {
       sbeHex,
       cborHex, // Legacy support
       root,
-      schemaXml
+      schemaXml,
+      schemaHash: schemaHashFromRequest
     } = body;
     
     // Use sbeHex if provided, otherwise fall back to cborHex for backward compatibility
@@ -134,8 +135,9 @@ export async function POST(request: NextRequest) {
       transport: http(rpcUrl)
     });
 
-    // Schema hash for DEMO_FIX_SCHEMA
-    const schemaHash = '0xb24215c985384ddaa6767272d452780aa4352201a1df669564cde3905cb6a215' as `0x${string}`;
+    const schemaHash = (schemaHashFromRequest && typeof schemaHashFromRequest === 'string')
+      ? (schemaHashFromRequest.startsWith('0x') ? schemaHashFromRequest : `0x${schemaHashFromRequest}`) as `0x${string}`
+      : '0xb24215c985384ddaa6767272d452780aa4352201a1df669564cde3905cb6a215' as `0x${string}`;
 
     // Prepare descriptor (factory will set fixSBEPtr and fixSBELen)
     const descriptor = {
