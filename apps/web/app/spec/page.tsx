@@ -409,7 +409,7 @@ export default function SpecPage() {
               fontSize: 'clamp(0.8rem, 2vw, 0.9rem)',
               color: 'rgba(255,255,255,0.7)'
             }}>
-              <strong style={{ color: 'rgba(255,255,255,0.9)' }}>Version 1.0</strong> · Last Updated: February 2025
+              <strong style={{ color: 'rgba(255,255,255,0.9)' }}>Version 1.0</strong> · Last Updated: February 2026
             </div>
 
             {/* Prominent CTA for Explorer */}
