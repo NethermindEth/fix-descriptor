@@ -4,6 +4,9 @@ import type { DescriptorTree, GroupNode, Path, Tag } from './types';
 
 const pathEncoder = new Encoder();
 
+// Merkle delimiter: "=" (UTF-8 byte 0x3d)
+const MERKLE_DELIMITER = new Uint8Array([0x3d]);
+
 function encodePathCBOR(path: Path): Uint8Array {
   // encode as canonical CBOR array of unsigned integers
   return pathEncoder.encode(path);
@@ -80,9 +83,10 @@ export function computeRoot(leaves: Array<{ pathCBOR: Uint8Array; valueBytes: Ui
   }
   
   const leafHashes: Uint8Array[] = leaves.map(({ pathCBOR, valueBytes }) => {
-    const bytes = new Uint8Array(pathCBOR.length + valueBytes.length);
+    const bytes = new Uint8Array(pathCBOR.length + MERKLE_DELIMITER.length + valueBytes.length);
     bytes.set(pathCBOR, 0);
-    bytes.set(valueBytes, pathCBOR.length);
+    bytes.set(MERKLE_DELIMITER, pathCBOR.length);
+    bytes.set(valueBytes, pathCBOR.length + MERKLE_DELIMITER.length);
     const h = keccak256(bytes);
     return hexToBytes(h);
   });
@@ -125,9 +129,10 @@ export function generateProof(
   }
 
   const hashes: Uint8Array[] = leaves.map(({ pathCBOR, valueBytes }) => {
-    const bytes = new Uint8Array(pathCBOR.length + valueBytes.length);
+    const bytes = new Uint8Array(pathCBOR.length + MERKLE_DELIMITER.length + valueBytes.length);
     bytes.set(pathCBOR, 0);
-    bytes.set(valueBytes, pathCBOR.length);
+    bytes.set(MERKLE_DELIMITER, pathCBOR.length);
+    bytes.set(valueBytes, pathCBOR.length + MERKLE_DELIMITER.length);
     return hexToBytes(keccak256(bytes));
   });
 
@@ -175,9 +180,10 @@ export function verifyProofLocal(
   proof: `0x${string}`[],
   directions: boolean[]
 ): boolean {
-  const leafBytes = new Uint8Array(pathCBOR.length + valueBytes.length);
+  const leafBytes = new Uint8Array(pathCBOR.length + MERKLE_DELIMITER.length + valueBytes.length);
   leafBytes.set(pathCBOR, 0);
-  leafBytes.set(valueBytes, pathCBOR.length);
+  leafBytes.set(MERKLE_DELIMITER, pathCBOR.length);
+  leafBytes.set(valueBytes, pathCBOR.length + MERKLE_DELIMITER.length);
   let node = hexToBytes(keccak256(leafBytes));
   for (let i = 0; i < proof.length; i++) {
     const sib = hexToBytes(proof[i]);
@@ -226,9 +232,10 @@ export function buildMerkleTreeStructure(
 
   // Create leaf nodes with their hashes
   const leafNodes: MerkleTreeNode[] = leaves.map(({ path, pathCBOR, valueBytes }) => {
-    const bytes = new Uint8Array(pathCBOR.length + valueBytes.length);
+    const bytes = new Uint8Array(pathCBOR.length + MERKLE_DELIMITER.length + valueBytes.length);
     bytes.set(pathCBOR, 0);
-    bytes.set(valueBytes, pathCBOR.length);
+    bytes.set(MERKLE_DELIMITER, pathCBOR.length);
+    bytes.set(valueBytes, pathCBOR.length + MERKLE_DELIMITER.length);
     return {
       hash: keccak256(bytes) as `0x${string}`,
       type: 'leaf',

@@ -95,12 +95,12 @@ contract MyBondToken is ERC20, Ownable, ERC165, IFixDescriptor {
     }
 
     function verifyField(
-        bytes calldata pathSBE,
+        bytes calldata pathCBOR,
         bytes calldata value,
         bytes32[] calldata proof,
         bool[] calldata directions
     ) external view override returns (bool) {
-        return _fixDescriptor.verifyFieldProof(pathSBE, value, proof, directions);
+        return _fixDescriptor.verifyFieldProof(pathCBOR, value, proof, directions);
     }
 
     // ERC165 support
@@ -482,7 +482,7 @@ Full working examples are available in the repository:
 - **Basic ERC721**: [`AssetTokenERC721.sol`](../src/AssetTokenERC721.sol)
 - **Upgradeable ERC20**: [`AssetTokenERC20Upgradeable.sol`](../src/examples/AssetTokenERC20Upgradeable.sol)
 - **Upgradeable ERC721**: [`AssetTokenERC721Upgradeable.sol`](../src/examples/AssetTokenERC721Upgradeable.sol)
-- **Advanced Usage**: [`BondDescriptorReader.sol`](../src/examples/BondDescriptorReader.sol)
+- **Factory Pattern**: [`AssetTokenFactory.sol`](../src/AssetTokenFactory.sol)
 
 ---
 

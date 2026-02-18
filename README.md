@@ -4,7 +4,7 @@
 
 > **Transform FIX asset descriptors into verifiable onchain commitments**
 
-A comprehensive toolkit for converting FIX (Financial Information eXchange) protocol asset descriptors into canonical CBOR payloads and Merkle commitments for blockchain verification.
+A comprehensive toolkit for converting FIX (Financial Information eXchange) protocol asset descriptors into SBE (Simple Binary Encoding) payloads and Merkle commitments for blockchain verification.
 
 [![License: ISC](https://img.shields.io/badge/License-ISC-blue.svg)](https://opensource.org/licenses/ISC)
 [![TypeScript](https://img.shields.io/badge/TypeScript-5.0+-blue.svg)](https://www.typescriptlang.org/)
@@ -13,7 +13,7 @@ A comprehensive toolkit for converting FIX (Financial Information eXchange) prot
 ## 🚀 Features
 
 - **📋 FIX Message Parsing** - Robust parsing of FIX protocol asset descriptors
-- **🔗 Canonical CBOR Encoding** - Deterministic CBOR serialization for consistent hashing
+- **🔗 SBE Encoding** - Simple Binary Encoding (SBE) for efficient onchain storage
 - **🌳 Merkle Tree Generation** - Efficient tree construction with cryptographic proofs
 - **⛓️ Onchain Verification** - Smart contracts for decentralized proof verification
 - **🌐 Web Interface** - Interactive UI for testing and deployment
@@ -22,7 +22,7 @@ A comprehensive toolkit for converting FIX (Financial Information eXchange) prot
 ## 📁 Project Structure
 
 ```
-fixdescriptorkit-evm/
+fix-descriptor/
 ├── packages/
 │   └── fixdescriptorkit-typescript/    # Core TypeScript library
 ├── apps/
@@ -64,8 +64,8 @@ fixdescriptorkit-evm/
 
 ```bash
 # Clone the repository (with submodules for OpenZeppelin)
-git clone --recurse-submodules https://github.com/your-username/fixdescriptorkit-evm.git
-cd fixdescriptorkit-evm
+git clone --recurse-submodules https://github.com/NethermindEth/fix-descriptor.git
+cd fix-descriptor
 
 # If you already cloned without submodules, run:
 # git submodule update --init --recursive
@@ -154,10 +154,6 @@ contract MyBondToken is ERC20, Ownable, IFixDescriptor {
     ) external view returns (bool) {
         return _fixDescriptor.verifyFieldProof(pathCBOR, value, proof, directions);
     }
-    
-    function getHumanReadableDescriptor() external view returns (string memory) {
-        return _fixDescriptor.getHumanReadable();
-    }
 }
 ```
 
@@ -191,7 +187,7 @@ contract MyUpgradeableBond is
 - ✅ **Easy Integration** - Just 3 steps, ~10 lines of code
 - ✅ **Works Everywhere** - Any token standard, any upgrade pattern
 - ✅ **No Central Registry** - Fully decentralized, embedded in asset contracts
-- ✅ **All Logic Included** - SSTORE2, Merkle proofs, CBOR parsing handled by library
+- ✅ **All Logic Included** - SSTORE2, Merkle proofs, SBE reading handled by library
 - ✅ **Flexible Access Control** - Use Ownable, AccessControl, or custom logic
 
 **📖 [Complete Integration Guide](./contracts/docs/INTEGRATION_GUIDE.md)**
@@ -272,7 +268,7 @@ If you use GitHub Actions, enable submodule checkout:
 graph TD
     A[FIX Message] --> B[Parse & Validate]
     B --> C[Canonical Tree]
-    C --> D[CBOR Encoding]
+    C --> D[SBE Encoding]
     D --> E[Merkle Tree]
     E --> F[Onchain Storage]
     F --> G[Verification]
@@ -282,7 +278,7 @@ graph TD
 
 1. **Parser** - Converts FIX messages to structured trees
 2. **Canonicalizer** - Normalizes data for deterministic encoding
-3. **CBOR Encoder** - Creates compact binary representations
+3. **SBE Encoder** - Creates compact binary representations using Simple Binary Encoding
 4. **Merkle Engine** - Generates cryptographic commitments and proofs
 5. **Asset Contracts** - ERC20/ERC721 tokens with embedded descriptors
 6. **Verification Library** - Onchain Merkle proof verification
@@ -312,7 +308,7 @@ Generates a cryptographic proof for a specific field path.
 
 Asset contracts implementing `IFixDescriptor` provide:
 
-- `getFixDescriptor()` - Returns the complete descriptor struct
+- `getFixDescriptor()` - Returns the complete descriptor struct with `fixSBEPtr` and `fixSBELen` fields
 - `getFixRoot()` - Returns the Merkle root commitment
 - `verifyField(pathCBOR, value, proof, directions)` - Verifies a field against the commitment
 
@@ -332,7 +328,7 @@ The repository includes example implementations:
 
 - `AssetTokenERC20` - ERC20 token with embedded FIX descriptor
 - `AssetTokenERC721` - ERC721 NFT with embedded FIX descriptor
-- `DataContractFactory` - SSTORE2 pattern for CBOR storage
+- `DataContractFactory` - SSTORE2 pattern for SBE data storage
 - `FixMerkleVerifier` - Library for proof verification
 
 Deploy your own asset contracts implementing `IFixDescriptor` to use this system.
@@ -363,12 +359,11 @@ This project is licensed under the ISC License - see the [LICENSE](LICENSE) file
 Comprehensive documentation for smart contracts is available in [contracts/docs/](./contracts/docs/):
 
 - 📖 **[Getting Started](./contracts/docs/BUILD_AND_TEST.md)** - Setup, build, and test instructions
-- 📊 **[Gas Comparison Analysis](./contracts/docs/GAS_COMPARISON_ANALYSIS.md)** - CBOR vs Merkle proof costs (key decision)
-- 📚 **[CBOR Parser Guide](./contracts/docs/CBOR_PARSER.md)** - Direct CBOR field access (12k-80k gas)
+- 📊 **[Gas Analysis](./contracts/docs/GAS_ANALYSIS.md)** - Merkle proof verification gas costs
 - ⭐ **[Merkle Verifier Guide](./contracts/docs/MERKLE_VERIFIER.md)** - Proof-based verification (6k-8.5k gas, **recommended**)
 - 📋 **[Documentation Index](./contracts/docs/README.md)** - Complete documentation overview
 
-**Key Finding:** Merkle proof verification is **2-10x more gas efficient** than CBOR parsing. Use Merkle for production deployments.
+**Key Finding:** Merkle proof verification is **2-10x more gas efficient** than direct field parsing. Use Merkle for production deployments. The system uses SBE (Simple Binary Encoding) for onchain storage.
 
 ### Specifications
 
@@ -392,8 +387,8 @@ Comprehensive documentation for smart contracts is available in [contracts/docs/
 
 For questions, issues, or contributions:
 
-- 🐛 Issues: [GitHub Issues](https://github.com/swapnilraj/fixdescriptorkit-evm/issues)
-- 💬 Discussions: [GitHub Discussions](https://github.com/swapnilraj/fixdescriptorkit-evm/discussions)
+- 🐛 Issues: [GitHub Issues](https://github.com/NethermindEth/fix-descriptor/issues)
+- 💬 Discussions: [GitHub Discussions](https://github.com/NethermindEth/fix-descriptor/discussions)
 
 ---
 

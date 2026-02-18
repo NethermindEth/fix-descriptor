@@ -14,12 +14,16 @@ NEXT_PUBLIC_RPC_URL=https://ethereum-sepolia-rpc.publicnode.com
 
 ```bash
 cd contracts
-forge script script/DeployAssetToken.s.sol \
+source .env  # Load environment variables
+forge script script/DeployAssetTokenWithFactory.s.sol \
   --rpc-url $NEXT_PUBLIC_RPC_URL \
   --broadcast \
+  --slow \
   --verify \
-  -vvvv
+  -vvv
 ```
+
+**Note:** The `--slow` flag is recommended to avoid rate limiting. The `--verify` flag is optional and requires an Etherscan API key.
 
 This will deploy:
 - DataContractFactory (for SSTORE2 storage)
@@ -63,11 +67,19 @@ After deployment, save these addresses:
 If verification fails during deployment, verify manually:
 
 ```bash
+# Set these variables first
+DATA_FACTORY_ADDRESS=0x...  # From deployment output
+FACTORY_ADDRESS=0x...       # AssetTokenFactory address
+ETHERSCAN_API_KEY=...       # Your Etherscan API key
+
 forge verify-contract \
   --chain sepolia \
   --compiler-version v0.8.20+commit.a1b79de6 \
   --constructor-args $(cast abi-encode "constructor(address)" $DATA_FACTORY_ADDRESS) \
+  --etherscan-api-key $ETHERSCAN_API_KEY \
   $FACTORY_ADDRESS \
   src/AssetTokenFactory.sol:AssetTokenFactory
 ```
+
+**Note:** You'll need an Etherscan API key. Get one at https://etherscan.io/apis
 

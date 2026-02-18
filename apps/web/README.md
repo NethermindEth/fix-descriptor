@@ -39,6 +39,7 @@ This web application serves as:
 ### 4. **API Endpoints**
 - **Preview API** (`/api/preview`) - Process FIX messages and return transformation results
 - **Proof API** (`/api/proof`) - Generate Merkle proofs for specific field paths
+- **Decode SBE API** (`/api/decode-sbe`) - Decode SBE-encoded messages back to FIX format
 - **Deploy API** (`/api/deploy-token`) - Server-side deployment coordination
 - **Diagnostics API** (`/api/diagnostics`) - System health checks
 
@@ -59,6 +60,7 @@ apps/web/
 │   ├── api/
 │   │   ├── preview/route.ts          # Transformation preview endpoint
 │   │   ├── proof/route.ts            # Merkle proof generation
+│   │   ├── decode-sbe/route.ts       # SBE decoding endpoint
 │   │   ├── deploy-token/route.ts     # Deployment coordination
 │   │   └── diagnostics/route.ts      # Health checks
 │   ├── layout.tsx                    # Root layout with styling
@@ -156,7 +158,7 @@ npm start
 ### 3. Deploying to Blockchain
 
 1. **Connect MetaMask** using the "Connect Wallet" button
-2. **Review Descriptor** - Verify CBOR size, Merkle root, gas estimates
+2. **Review Descriptor** - Verify SBE size, Merkle root, gas estimates
 3. **Configure Token** - Set name, symbol, initial supply
 4. **Deploy** - Sign transaction in MetaMask
 5. **Monitor Deployment** - View transaction hash and contract address
@@ -187,13 +189,40 @@ Process a FIX message and return all transformation results.
 {
   "tree": { ... },
   "canonical": { ... },
-  "cborHex": "a2...",
-  "cborSize": 243,
+  "sbeHex": "a2...",
+  "sbeSize": 243,
   "leaves": [ ... ],
   "root": "0x7a3f...",
   "proof": { ... }
 }
 ```
+
+### `POST /api/decode-sbe`
+
+Decode an SBE-encoded message back to FIX format.
+
+**Request:**
+```json
+{
+  "encodedMessage": "0xa2...",
+  "schema": "<sbe:messageSchema>...</sbe:messageSchema>",
+  "messageId": 1
+}
+```
+
+**Response:**
+```json
+{
+  "decodedFields": {
+    "55": "ACME",
+    "15": "USD",
+    ...
+  },
+  "fixMessage": "55=ACME|15=USD|..."
+}
+```
+
+**Note:** Requires `ENCODER_URL` environment variable pointing to the SBE encoder service.
 
 ### `POST /api/proof`
 

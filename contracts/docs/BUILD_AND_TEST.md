@@ -24,14 +24,18 @@
 ## Project Structure
 
 ```
-fixdescriptorkit-evm/
+fix-descriptor/
 ├── contracts/              # Solidity contracts
 │   ├── src/               # Source contracts
 │   │   ├── generated/     # Auto-generated test data (gitignored)
 │   │   ├── examples/      # Example implementations
-│   │   ├── FixCBORReader.sol
-│   │   ├── FixValueParser.sol
-│   │   └── FixMerkleVerifier.sol
+│   │   ├── FixDescriptorLib.sol
+│   │   ├── FixMerkleVerifier.sol
+│   │   ├── IFixDescriptor.sol
+│   │   ├── SSTORE2.sol
+│   │   ├── AssetTokenERC20.sol
+│   │   ├── AssetTokenERC721.sol
+│   │   └── AssetTokenFactory.sol
 │   ├── test/              # Solidity tests
 │   ├── docs/              # Contract documentation
 │   └── foundry.toml       # Foundry configuration
@@ -48,7 +52,7 @@ fixdescriptorkit-evm/
 ```bash
 # Clone the repository
 git clone <repo-url>
-cd fixdescriptorkit-evm
+cd fix-descriptor
 
 # Install Foundry dependencies (submodules)
 forge install
@@ -69,8 +73,7 @@ npm run generate-test-data
 ```
 
 This creates:
-- `contracts/src/generated/GeneratedCBORTestData.sol` - CBOR test descriptors
-- `contracts/src/generated/GeneratedMerkleData.sol` - Merkle roots and proofs
+- `contracts/src/generated/GeneratedMerkleData.sol` - Merkle roots and proofs for testing
 
 ## Building
 
@@ -116,30 +119,30 @@ forge test
 
 **Expected output:**
 ```
-Ran 5 test suites in 120ms: 77 tests passed, 0 failed, 0 skipped (77 total tests)
+Ran 3 test suites: All tests passed ✅
 ```
 
 ### Run Specific Test Suite
 
 ```bash
-# CBOR Parser tests (21 tests)
-forge test --root contracts --match-contract FixCBORReaderTest
+# Library tests
+forge test --root contracts --match-contract FixDescriptorLibTest
 
-# Merkle Verifier tests (25 tests)
-forge test --root contracts --match-contract GasComparisonTest
+# Token integration tests
+forge test --root contracts --match-contract AssetTokenTest
 
-# Bond example tests (10 tests)
-forge test --root contracts --match-contract BondDescriptorReaderTest
+# Factory tests
+forge test --root contracts --match-contract AssetTokenFactoryTest
 ```
 
 ### Run Specific Test
 
 ```bash
 # Run a single test by name
-forge test --root contracts --match-test test_Gas_RealWorld_CBOR_Symbol
+forge test --root contracts --match-test test_SetDescriptor
 
 # Run tests matching pattern
-forge test --root contracts --match-test "test_Gas.*Merkle"
+forge test --root contracts --match-test "test.*Merkle"
 ```
 
 ### Verbose Output
@@ -171,43 +174,42 @@ forge test --root contracts --match-contract GasComparisonTest --gas-report
 ```
 | Contract          | Function               | Gas     |
 |-------------------|------------------------|---------|
-| FixCBORReader     | getField (2 fields)    | 12,933  |
-| FixCBORReader     | getField (16 fields)   | 80,260  |
 | FixMerkleVerifier | verify (2 fields)      | 6,085   |
-| FixMerkleVerifier | verify (16 fields)     | 8,561   |
+| FixMerkleVerifier | verify (16 fields)      | 8,561   |
+| FixDescriptorLib  | setDescriptor           | ~20k    |
+| FixDescriptorLib  | getFixSBEChunk          | ~5k     |
 ```
 
-### Compare CBOR vs Merkle
+### Analyze Gas Usage
 
-Run the comprehensive gas comparison:
+Run gas analysis for Merkle verification:
 
 ```bash
-forge test --root contracts --match-contract GasComparisonTest --gas-report > gas_report.txt
+forge test --root contracts --match-contract FixDescriptorLibTest --gas-report > gas_report.txt
 ```
 
 View results:
 ```bash
-cat gas_report.txt | grep -E "test_Gas"
+cat gas_report.txt | grep -E "verify|setDescriptor"
 ```
 
-**Expected comparison:**
-- CBOR: 12k-80k gas (scales with descriptor size)
-- Merkle: 6k-8.5k gas (constant)
-- **Savings: 2-10x** ✅
+**Expected gas costs:**
+- Merkle verification: 6k-8.5k gas (constant regardless of descriptor size)
+- Descriptor storage: ~20k gas (Merkle root) + 100-200k gas (SBE via SSTORE2)
+- **Verification savings: 2-10x** compared to direct parsing ✅
 
-See [GAS_COMPARISON.md](GAS_COMPARISON.md) for detailed analysis.
+See [GAS_ANALYSIS.md](GAS_ANALYSIS.md) for detailed analysis.
 
 ### Analyze Specific Field Access
 
 ```bash
-# Compare Symbol field access across different descriptors
-forge test --root contracts --match-test ".*Symbol" --gas-report
+# Analyze Merkle verification gas for different field types
+forge test --root contracts --match-test ".*verify.*" --gas-report
 
-# Output shows:
-# - test_Gas_Simple_CBOR_Symbol: 12,933 gas
-# - test_Gas_Simple_Merkle_Symbol: 6,085 gas
-# - test_Gas_RealWorld_CBOR_Symbol: 80,260 gas
-# - test_Gas_RealWorld_Merkle_Symbol: 8,561 gas
+# Output shows gas costs for:
+# - Simple field verification (2-field descriptor)
+# - Complex field verification (16-field descriptor)
+# - Nested group field verification
 ```
 
 ## Code Coverage
@@ -227,11 +229,14 @@ open coverage/index.html
 ### Coverage for Specific Files
 
 ```bash
-# Coverage for CBOR Reader
-forge coverage --root contracts --match-path "src/FixCBORReader.sol"
+# Coverage for FixDescriptorLib
+forge coverage --root contracts --match-path "src/FixDescriptorLib.sol"
 
 # Coverage for Merkle Verifier
 forge coverage --root contracts --match-path "src/FixMerkleVerifier.sol"
+
+# Coverage for example contracts
+forge coverage --root contracts --match-path "src/examples/"
 ```
 
 ## Debugging
@@ -293,7 +298,7 @@ forge snapshot --root contracts --check .gas-snapshot
 
 **Error:**
 ```
-Error: File not found: contracts/src/generated/GeneratedCBORTestData.sol
+Error: File not found: contracts/src/generated/GeneratedMerkleData.sol
 ```
 
 **Solution:**
@@ -363,11 +368,11 @@ forge test --root contracts --no-build
 ### Selective Testing
 
 ```bash
-# Only run gas comparison tests
-forge test --root contracts --match-contract GasComparisonTest
+# Only run library tests
+forge test --root contracts --match-contract FixDescriptorLibTest
 
-# Skip slow tests
-forge test --root contracts --no-match-test ".*RealWorld.*"
+# Run example contract tests
+forge test --root contracts --match-path "test/AssetToken*"
 ```
 
 ## Development Workflow
@@ -406,7 +411,7 @@ forge test --root contracts --no-match-test ".*RealWorld.*"
    vim packages/fixdescriptorkit-typescript/scripts/generate-solidity-test-data.ts
    ```
 
-2. **Regenerate** Solidity test data
+2. **Regenerate** Merkle test data
    ```bash
    cd packages/fixdescriptorkit-typescript
    npm run generate-test-data
@@ -421,9 +426,9 @@ forge test --root contracts --no-match-test ".*RealWorld.*"
 
 ## Next Steps
 
-- 📖 Read [CBOR_PARSER.md](CBOR_PARSER.md) - Learn about CBOR parsing
 - 📖 Read [MERKLE_VERIFIER.md](MERKLE_VERIFIER.md) - Learn about Merkle verification
-- 📊 Read [GAS_COMPARISON.md](GAS_COMPARISON.md) - Understand gas trade-offs
+- 📖 Read [INTEGRATION_GUIDE.md](INTEGRATION_GUIDE.md) - Integration guide
+- 📊 Read [GAS_ANALYSIS.md](GAS_ANALYSIS.md) - Understand gas trade-offs
 - 💡 See [../src/examples/](../src/examples/) - Example implementations
 
 ## Help

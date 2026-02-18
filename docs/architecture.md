@@ -20,12 +20,12 @@ This document provides a comprehensive overview of the FixDescriptorKit architec
 
 ## Overview
 
-FixDescriptorKit is a comprehensive toolkit for converting FIX (Financial Information eXchange) protocol asset descriptors into canonical CBOR payloads and Merkle commitments suitable for blockchain verification. The system enables onchain verification of specific FIX fields without requiring full FIX parsing onchain.
+FixDescriptorKit is a comprehensive toolkit for converting FIX (Financial Information eXchange) protocol asset descriptors into SBE (Simple Binary Encoding) payloads and Merkle commitments suitable for blockchain verification. The system enables onchain verification of specific FIX fields without requiring full FIX parsing onchain.
 
 ### Key Capabilities
 
 - **FIX Message Parsing**: Robust parsing of FIX protocol messages
-- **Canonical CBOR Encoding**: Deterministic binary serialization
+- **SBE Encoding**: Simple Binary Encoding for efficient onchain storage
 - **Merkle Tree Generation**: Cryptographic commitments with proof generation
 - **Onchain Verification**: Smart contract-based field verification
 - **Web Interface**: Interactive testing and deployment tools
@@ -45,12 +45,12 @@ graph TB
         D --> E
         E --> F[Parse FIX]
         F --> G[Build Canonical Tree]
-        G --> H[Encode CBOR]
+        G --> H[Encode SBE]
         H --> I[Generate Merkle Tree]
     end
     
     subgraph "Storage Layer"
-        I --> J[CBOR Data Contract]
+        I --> J[SBE Data Contract]
         I --> K[Asset Contract with Embedded Descriptor]
     end
     
@@ -110,7 +110,7 @@ Onchain verification and storage components.
 - **`IFixDescriptor.sol`**: Standard interface for asset contracts
 - **`AssetTokenERC20.sol`**: Example ERC20 with embedded descriptor
 - **`AssetTokenERC721.sol`**: Example ERC721 with embedded descriptor
-- **`DataContractFactory.sol`**: SSTORE2-style CBOR data deployment
+- **`DataContractFactory.sol`**: SSTORE2-style SBE data deployment
 - **`FixMerkleVerifier.sol`**: Merkle proof verification library
 
 **Benefits:**
@@ -126,8 +126,8 @@ Onchain verification and storage components.
 struct FixDescriptor {
     bytes32 schemaHash;   // FIX schema/dictionary hash
     bytes32 fixRoot;      // Merkle root
-    address fixCBORPtr;   // CBOR data contract address
-    uint32  fixCBORLen;   // CBOR data length
+    address fixSBEPtr;    // SBE data contract address
+    uint32  fixSBELen;    // SBE data length
     string  schemaURI;    // Optional SBE schema URI
 }
 ```
@@ -148,6 +148,7 @@ Next.js-based interactive interface for testing and deployment.
 
 - **`/api/preview`**: Process FIX messages and generate commitments
 - **`/api/proof`**: Generate Merkle proofs for specific fields
+- **`/api/decode-sbe`**: Decode SBE-encoded messages back to FIX format
 - **`/api/diagnostics`**: System health and configuration
 
 ## Data Flow
@@ -167,15 +168,15 @@ sequenceDiagram
     API->>Library: buildCanonicalTree(tree)
     Library-->>API: CanonicalNode
     API->>Library: encodeCanonicalCBOR(canonical)
-    Library-->>API: CBOR bytes
+    Library-->>API: CBOR bytes (for canonical tree)
     API->>Library: enumerateLeaves(canonical)
     Library-->>API: MerkleLeaf[]
     API->>Library: computeRoot(leaves)
     Library-->>API: Merkle root
-    API-->>Client: {root, cborHex, merkleTree}
+    API-->>Client: {root, sbeHex, merkleTree}
     
-    Client->>Blockchain: Deploy CBOR data
-    Blockchain-->>Client: Data contract address
+    Client->>Blockchain: Deploy SBE data
+    Blockchain-->>Client: SBE data contract address
     Client->>Blockchain: Deploy asset contract with descriptor
     Blockchain-->>Client: Asset contract address
     Client->>Blockchain: Call setFixDescriptor()
@@ -229,7 +230,7 @@ sequenceDiagram
 ```mermaid
 graph TB
     subgraph "Deployment Phase"
-        A[DataContractFactory] --> B[CBOR Data Contract]
+        A[DataContractFactory] --> B[SBE Data Contract]
         C[Deploy AssetToken] --> D[Asset Contract with IFixDescriptor]
         B --> D
     end
@@ -249,7 +250,7 @@ graph TB
 
 ### Gas Optimization Strategies
 
-1. **SSTORE2 Pattern**: Efficient CBOR data storage
+1. **SSTORE2 Pattern**: Efficient SBE data storage
 2. **Library Pattern**: Reusable verification logic
 3. **Minimal Onchain Parsing**: No FIX parsing onchain
 4. **Batch Operations**: Multiple descriptors in single transaction
@@ -258,7 +259,7 @@ graph TB
 
 - **Decentralized Control**: Each asset owner controls their own descriptor
 - **No Central Authority**: No registry gatekeeper or permission model
-- **Immutable Data**: CBOR data contracts are immutable
+- **Immutable Data**: SBE data contracts are immutable
 - **Cryptographic Verification**: Merkle proofs ensure integrity
 - **Version Control**: Dictionary hash prevents semantic drift
 - **ERC165 Discovery**: Standard interface detection for compatibility
@@ -382,7 +383,7 @@ graph TB
 
 - **Keccak256 Hashing**: Industry-standard hash function
 - **Merkle Tree Integrity**: Tamper-evident data structure
-- **Deterministic Encoding**: Consistent CBOR serialization
+- **Deterministic Encoding**: Consistent SBE serialization
 - **Path Validation**: Secure path traversal
 
 ### Smart Contract Security
@@ -404,7 +405,7 @@ graph TB
 ### Processing Performance
 
 - **FIX Parsing**: O(n) where n = number of fields
-- **CBOR Encoding**: O(n) linear with input size
+- **SBE Encoding**: O(n) linear with input size
 - **Merkle Tree**: O(n log n) for tree construction
 - **Proof Generation**: O(log n) for proof size
 
@@ -428,7 +429,7 @@ graph TB
 
 ```bash
 # Clone repository
-git clone https://github.com/swapnilraj/fix-descriptor.git
+git clone https://github.com/NethermindEth/fix-descriptor.git
 cd fix-descriptor
 
 # Install dependencies
@@ -476,5 +477,5 @@ forge script script/DeployFixDescriptorKit.s.sol --rpc-url $RPC_URL --broadcast
 For more information, see:
 - [Technical Specification](https://fixdescriptor.vercel.app/spec)
 - [Deployment Guide](./DEPLOYMENT.md)
-- [GitHub Repository](https://github.com/swapnilraj/fix-descriptor)
+- [GitHub Repository](https://github.com/NethermindEth/fix-descriptor)
 - [Live Demo](https://fixdescriptor.vercel.app)

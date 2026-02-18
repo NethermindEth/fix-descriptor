@@ -40,7 +40,7 @@ library FixDescriptorLib {
      */
     function setDescriptor(
         Storage storage self,
-        IFixDescriptor.FixDescriptor calldata descriptor
+        IFixDescriptor.FixDescriptor memory descriptor
     ) internal {
         bytes32 oldRoot = self.descriptor.fixRoot;
         self.descriptor = descriptor;
@@ -93,7 +93,7 @@ library FixDescriptorLib {
     /**
      * @notice Verify a specific field against the committed descriptor
      * @param self Storage reference
-     * @param pathSBE SBE-encoded bytes of the field path
+     * @param pathCBOR CBOR-encoded bytes of the field path
      * @param value Raw FIX value bytes
      * @param proof Merkle proof (sibling hashes)
      * @param directions Direction array (true=right child, false=left child)
@@ -101,7 +101,7 @@ library FixDescriptorLib {
      */
     function verifyFieldProof(
         Storage storage self,
-        bytes calldata pathSBE,
+        bytes calldata pathCBOR,
         bytes calldata value,
         bytes32[] calldata proof,
         bool[] calldata directions
@@ -109,7 +109,7 @@ library FixDescriptorLib {
         require(self.initialized, "Descriptor not initialized");
         return FixMerkleVerifier.verify(
             self.descriptor.fixRoot,
-            pathSBE,
+            pathCBOR,
             value,
             proof,
             directions

@@ -61,12 +61,12 @@ contract AssetTokenERC20 is ERC20, Ownable, ERC165, IFixDescriptor {
      * @inheritdoc IFixDescriptor
      */
     function verifyField(
-        bytes calldata pathSBE,
+        bytes calldata pathCBOR,
         bytes calldata value,
         bytes32[] calldata proof,
         bool[] calldata directions
     ) external view override returns (bool) {
-        return _fixDescriptor.verifyFieldProof(pathSBE, value, proof, directions);
+        return _fixDescriptor.verifyFieldProof(pathCBOR, value, proof, directions);
     }
 
     /**

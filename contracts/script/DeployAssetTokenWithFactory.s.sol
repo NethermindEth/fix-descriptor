@@ -18,7 +18,7 @@ contract DeployAssetToken is Script {
         
         vm.startBroadcast(deployerPrivateKey);
 
-        // Deploy DataContractFactory for CBOR storage
+        // Deploy DataContractFactory for SBE storage
         DataContractFactory dataFactory = new DataContractFactory();
         console.log("DataContractFactory deployed at:", address(dataFactory));
 

@@ -754,7 +754,7 @@ export default function SpecPage() {
                 },
                 {
                   term: 'Leaf',
-                  definition: 'A (path, value) pair in the Merkle tree representing a single field. Computed as: leaf = keccak256(pathSBE || valueBytes)'
+                  definition: 'A (path, value) pair in the Merkle tree representing a single field. Computed as: leaf = keccak256(pathCBOR || "=" || valueBytes)'
                 },
                 {
                   term: 'SBE',
@@ -1431,10 +1431,10 @@ export default function SpecPage() {
               color: 'rgba(255,255,255,0.9)',
               textAlign: 'center'
             }}>
-              leaf = keccak256( pathSBE || valueBytes )
+              leaf = keccak256( pathCBOR || "=" || valueBytes )
             </div>
             <ul style={{ color: 'rgba(255,255,255,0.7)', lineHeight: '1.8', marginBottom: 'clamp(1.5rem, 3vw, 2rem)', paddingLeft: 'clamp(1rem, 3vw, 1.5rem)', fontSize: 'clamp(0.9rem, 2vw, 1rem)' }}>
-              <li style={{ marginBottom: '0.5rem' }}><code style={{ background: 'rgba(255,255,255,0.1)', padding: '0.2rem 0.5rem', borderRadius: '3px' }}>pathSBE</code>: the SBE-encoded bytes of the path array</li>
+              <li style={{ marginBottom: '0.5rem' }}><code style={{ background: 'rgba(255,255,255,0.1)', padding: '0.2rem 0.5rem', borderRadius: '3px' }}>pathCBOR</code>: the CBOR-encoded bytes of the path array</li>
               <li><code style={{ background: 'rgba(255,255,255,0.1)', padding: '0.2rem 0.5rem', borderRadius: '3px' }}>valueBytes</code>: the exact FIX value bytes (UTF-8 string payload)</li>
             </ul>
 
@@ -1453,7 +1453,7 @@ export default function SpecPage() {
               8.4 Root Construction
             </SubsectionHeading>
             <ol style={{ color: 'rgba(255,255,255,0.7)', lineHeight: '1.8', paddingLeft: '1.5rem', marginBottom: '2rem' }}>
-              <li style={{ marginBottom: '0.75rem' }}>Sort all leaves by <strong>pathSBE</strong> lexicographically (byte order)</li>
+              <li style={{ marginBottom: '0.75rem' }}>Sort all leaves by <strong>pathCBOR</strong> lexicographically (byte order)</li>
               <li style={{ marginBottom: '0.75rem' }}>Build a standard <strong>binary Merkle tree</strong>:
                 <ul style={{ marginTop: '0.5rem', paddingLeft: '1.5rem' }}>
                   <li style={{ marginBottom: '0.5rem' }}>Pair adjacent leaves; each parent = keccak256(left || right)</li>
@@ -1478,7 +1478,7 @@ export default function SpecPage() {
               fontSize: '0.9rem',
               color: 'rgba(255,255,255,0.8)'
             }}>
-              <div style={{ marginBottom: '0.5rem' }}>pathSBE (bytes)</div>
+              <div style={{ marginBottom: '0.5rem' }}>pathCBOR (bytes)</div>
               <div style={{ marginBottom: '0.5rem' }}>valueBytes (bytes)</div>
               <div style={{ marginBottom: '0.5rem' }}>siblingHashes[]: bytes32[]</div>
               <div style={{ marginBottom: '0.5rem' }}>directions[]: bool[]</div>
@@ -1540,7 +1540,7 @@ export default function SpecPage() {
   function getFixDescriptor() external view returns (FixDescriptor memory descriptor);
   function getFixRoot() external view returns (bytes32 root);
   function verifyField(
-    bytes calldata pathSBE,
+    bytes calldata pathCBOR,
     bytes calldata value,
     bytes32[] calldata proof,
     bool[] calldata directions
@@ -1600,7 +1600,7 @@ export default function SpecPage() {
               <pre style={{ margin: 0, color: 'rgba(255,255,255,0.9)', lineHeight: '1.6' }}>{`library FixMerkleVerifier {
   function verify(
       bytes32 root,
-      bytes calldata pathSBE,
+      bytes calldata pathCBOR,
       bytes calldata value,
       bytes32[] calldata proof,
       bool[] calldata directions
@@ -1614,7 +1614,7 @@ export default function SpecPage() {
             <ol style={{ color: 'rgba(255,255,255,0.7)', lineHeight: '1.8', paddingLeft: 'clamp(1rem, 3vw, 1.5rem)', fontSize: 'clamp(0.9rem, 2vw, 1rem)' }}>
               <li style={{ marginBottom: '0.75rem' }}>
                 <code style={{ background: 'rgba(255,255,255,0.1)', padding: '0.2rem 0.5rem', borderRadius: '3px', fontSize: '0.9em' }}>
-                  bytes32 leaf = keccak256(abi.encodePacked(pathSBE, value))
+                  bytes32 leaf = keccak256(abi.encodePacked(pathCBOR, "=", value))
                 </code>
               </li>
               <li style={{ marginBottom: '0.75rem' }}>
@@ -2008,8 +2008,8 @@ export default function SpecPage() {
                 { num: 1, title: 'Load Orchestra Schema & Parse FIX', desc: 'Load the Orchestra XML schema defining field types and structure. Extract only business fields from the FIX message (exclude session tags - see Section 5)' },
                 { num: 2, title: 'Build Canonical Tree', desc: 'Map scalars directly; create array of entry maps for groups (see Section 6)' },
                 { num: 3, title: 'Serialize to SBE', desc: 'Convert Orchestra schema to SBE schema, then encode the FIX message using SBE encoding with schema-driven format (see Section 7)' },
-                { num: 4, title: 'Enumerate Leaves', desc: 'Compute pathSBE for each present field; collect (pathSBE, valueBytes) pairs (see Section 8.1-8.3)' },
-                { num: 5, title: 'Compute Merkle Root', desc: 'Sort leaves by pathSBE; build binary Merkle tree using keccak256 (see Section 8.4)' },
+                { num: 4, title: 'Enumerate Leaves', desc: 'Compute pathCBOR for each present field; collect (pathCBOR, valueBytes) pairs (see Section 8.1-8.3)' },
+                { num: 5, title: 'Compute Merkle Root', desc: 'Sort leaves by pathCBOR; build binary Merkle tree using keccak256 (see Section 8.4)' },
                 { num: 6, title: 'Deploy SBE', desc: 'Deploy as SSTORE2-style data contract; return fixSBEPtr and fixSBELen (see Section 9.4)' },
                 { num: 7, title: 'Set Descriptor', desc: 'Store in the asset contract (not a registry): schemaHash, fixRoot, fixSBEPtr, fixSBELen, schemaURI (see Section 9.2)' },
                 { num: 8, title: 'Emit Event', desc: 'Emit FixDescriptorSet event for indexing (see Section 9.5)' },
@@ -2066,7 +2066,7 @@ export default function SpecPage() {
                 <div>
                   <strong style={{ color: 'rgba(255,255,255,0.9)', fontSize: '0.9rem' }}>Open Source Code:</strong>
                   <div style={{ color: 'rgba(255,255,255,0.7)', fontSize: '0.9rem', marginTop: '0.25rem' }}>
-                    View the complete source code on <a href="https://github.com/swapnilraj/fix-descriptor" target="_blank" rel="noopener noreferrer" style={{ color: 'rgba(59, 130, 246, 1)', textDecoration: 'none' }}>GitHub</a>, including:
+                    View the complete source code on <a href="https://github.com/NethermindEth/fix-descriptor" target="_blank" rel="noopener noreferrer" style={{ color: 'rgba(59, 130, 246, 1)', textDecoration: 'none' }}>GitHub</a>, including:
                     <ul style={{ marginTop: '0.5rem', marginBottom: 0, paddingLeft: '1.5rem' }}>
                       <li>TypeScript library (packages/fixdescriptorkit-typescript)</li>
                       <li>Solidity smart contracts (contracts/src)</li>
@@ -2130,7 +2130,7 @@ export default function SpecPage() {
               <Link href="/explorer" style={{ color: 'rgba(255,255,255,0.6)', textDecoration: 'none', minHeight: '44px', display: 'flex', alignItems: 'center' }}>
                 Try the Explorer
               </Link>
-              <a href="https://github.com/swapnilraj/fix-descriptor" style={{ color: 'rgba(255,255,255,0.6)', textDecoration: 'none', minHeight: '44px', display: 'flex', alignItems: 'center' }}>
+              <a href="https://github.com/NethermindEth/fix-descriptor" style={{ color: 'rgba(255,255,255,0.6)', textDecoration: 'none', minHeight: '44px', display: 'flex', alignItems: 'center' }}>
                 View on GitHub
               </a>
             </p>

@@ -30,7 +30,6 @@ contracts/src/
 ├── AssetTokenERC721.sol            # Example ERC721 with embedded descriptor
 ├── AssetTokenFactory.sol           # Factory for deploying asset tokens
 └── examples/
-    ├── BondDescriptorReader.sol    # Advanced usage example
     ├── AssetTokenERC20Upgradeable.sol   # Upgradeable ERC20 example
     └── AssetTokenERC721Upgradeable.sol  # Upgradeable ERC721 example
 ```
@@ -67,7 +66,7 @@ contract MyToken is ERC20, IFixDescriptor {
 
 ✅ Works with **any token standard** (ERC20, ERC721, ERC1155, custom)  
 ✅ Works with **any upgrade pattern** (UUPS, Transparent, Beacon, or none)  
-✅ All complex logic (SSTORE2, Merkle proofs, CBOR parsing) handled by library  
+✅ All complex logic (SSTORE2, Merkle proofs, SBE reading) handled by library  
 
 **📖 [Complete Integration Guide](./docs/INTEGRATION_GUIDE.md)**
 
@@ -99,7 +98,7 @@ interface IFixDescriptor {
     function getFixDescriptor() external view returns (FixDescriptor memory);
     function getFixRoot() external view returns (bytes32);
     function verifyField(
-        bytes calldata pathSBE,
+        bytes calldata pathCBOR,
         bytes calldata value,
         bytes32[] calldata proof,
         bool[] calldata directions
@@ -208,7 +207,7 @@ contract MyUpgradeableBond is
 ```solidity
 // Deploy SBE data via SSTORE2
 DataContractFactory dataFactory = new DataContractFactory();
-address sbePtr = dataFactory.deployData(sbeBytes);
+address sbePtr = dataFactory.deploy(sbeBytes);
 
 // Create descriptor
 IFixDescriptor.FixDescriptor memory descriptor = IFixDescriptor.FixDescriptor({

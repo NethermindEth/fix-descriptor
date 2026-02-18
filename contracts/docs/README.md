@@ -7,10 +7,9 @@ Comprehensive documentation for the FIX Descriptor EVM contracts.
 **New to the project?** Start here:
 
 1. 📖 [BUILD_AND_TEST.md](BUILD_AND_TEST.md) - Setup, build, and test instructions
-2. 📊 [GAS_COMPARISON_ANALYSIS.md](GAS_COMPARISON_ANALYSIS.md) - **Key decision:** CBOR vs Merkle proofs
-3. 📚 Choose your approach:
-   - [CBOR_PARSER.md](CBOR_PARSER.md) - Direct CBOR field access
-   - [MERKLE_VERIFIER.md](MERKLE_VERIFIER.md) - Merkle proof verification ⭐ **Recommended**
+2. 📖 [INTEGRATION_GUIDE.md](INTEGRATION_GUIDE.md) - Step-by-step integration guide
+3. 📊 [GAS_ANALYSIS.md](GAS_ANALYSIS.md) - Gas cost analysis
+4. 🔐 [MERKLE_VERIFIER.md](MERKLE_VERIFIER.md) - Merkle proof verification guide ⭐
 
 ## Documentation Index
 
@@ -19,15 +18,15 @@ Comprehensive documentation for the FIX Descriptor EVM contracts.
 | Document | Description | Audience |
 |----------|-------------|----------|
 | [BUILD_AND_TEST.md](BUILD_AND_TEST.md) | Build, test, and development workflow | Developers |
+| [INTEGRATION_GUIDE.md](INTEGRATION_GUIDE.md) | Integration guide for token contracts | Developers |
 | [../README.md](../README.md) | Project overview and quick start | Everyone |
 
 ### Technical Guides
 
 | Document | Description | Gas Cost |
 |----------|-------------|----------|
-| [CBOR_PARSER.md](CBOR_PARSER.md) | Binary search CBOR field parsing | 12k-80k gas |
 | [MERKLE_VERIFIER.md](MERKLE_VERIFIER.md) | Merkle proof field verification | 6k-8.5k gas ⭐ |
-| [GAS_COMPARISON_ANALYSIS.md](GAS_COMPARISON_ANALYSIS.md) | Detailed gas cost analysis | - |
+| [GAS_ANALYSIS.md](GAS_ANALYSIS.md) | Detailed gas cost analysis | - |
 
 ### Implementation Details
 
@@ -37,73 +36,46 @@ Comprehensive documentation for the FIX Descriptor EVM contracts.
 
 ## Architecture Overview
 
-### Two Verification Approaches
+### SBE + Merkle Verification Approach
 
-The project implements **two complementary approaches** for accessing FIX Descriptor fields onchain:
+The project implements a **gas-efficient approach** for accessing FIX Descriptor fields onchain:
 
-#### 1. CBOR Parser (Direct Access)
+#### How It Works
 
-**How it works:**
-- Store full CBOR-encoded descriptor onchain
-- Use binary search to find fields
-- Parse values directly from CBOR
-
-**Pros:**
-- ✅ Access any field without additional data
-- ✅ Can enumerate all fields
-- ✅ Simpler client implementation
-
-**Cons:**
-- ❌ Expensive storage (500+ bytes)
-- ❌ Gas scales with descriptor size (12k-80k)
-- ❌ Nested access is very expensive (72k gas)
-
-**Best for:**
-- Small descriptors (2-3 fields)
-- Frequent access to ALL fields
-- Onchain enumeration requirements
-
-**Documentation:** [CBOR_PARSER.md](CBOR_PARSER.md)
-
-#### 2. Merkle Verifier (Proof-Based) ⭐ **Recommended**
-
-**How it works:**
-- Store only 32-byte Merkle root onchain
-- Client provides Merkle proof for each field access
-- Verify proof cryptographically
+1. **SBE Encoding**: Descriptors are encoded using Simple Binary Encoding (SBE)
+2. **SSTORE2 Storage**: SBE data is stored efficiently via SSTORE2 (~100-200k gas)
+3. **Merkle Root**: A 32-byte Merkle root is stored onchain (~20k gas)
+4. **Proof Verification**: Fields are verified using Merkle proofs (6k-8.5k gas)
 
 **Pros:**
-- ✅ **500x cheaper storage** (32 bytes vs 500 bytes)
-- ✅ **2-10x cheaper access** (6k-8.5k gas constant)
-- ✅ Scales to any descriptor size
-- ✅ Supports selective disclosure
-
-**Cons:**
-- ❌ Requires offchain proof generation
-- ❌ Cannot enumerate fields onchain
-- ❌ More complex client implementation
+- ✅ **Efficient storage** - SSTORE2 makes SBE storage affordable
+- ✅ **Constant verification cost** - 6k-8.5k gas regardless of descriptor size
+- ✅ **Scales to any size** - Handles descriptors with 50+ fields efficiently
+- ✅ **Selective disclosure** - Verify specific fields without revealing all data
+- ✅ **Cryptographic security** - Merkle proofs provide authenticity guarantees
 
 **Best for:**
-- Large descriptors (10+ fields) ⭐
-- Infrequent field access
-- Storage cost optimization
-- Production deployments
+- Production deployments ⭐
+- Large descriptors (5+ fields)
+- Gas-sensitive applications
+- Selective field access patterns
 
 **Documentation:** [MERKLE_VERIFIER.md](MERKLE_VERIFIER.md)
 
-### Gas Comparison Summary
+### Gas Performance Summary
 
-| Operation | CBOR | Merkle | Winner |
-|-----------|------|--------|--------|
-| **Storage (500 bytes)** | 10M gas | 20k gas | Merkle (500x) ⭐ |
-| **Access (2 fields)** | 12k gas | 6k gas | Merkle (2x) ⭐ |
-| **Access (16 fields)** | 80k gas | 8.5k gas | Merkle (9x) ⭐ |
-| **Nested group** | 72k gas | 7.7k gas | Merkle (9x) ⭐ |
-| **Enumerate fields** | ✅ Possible | ❌ Not possible | CBOR |
+| Operation | Gas Cost | Notes |
+|-----------|----------|-------|
+| **Storage (Merkle root)** | 20k | One-time, 32 bytes |
+| **Storage (SBE via SSTORE2)** | 100-200k | One-time, ~500 bytes typical |
+| **Verification (2 fields)** | 6k | Constant cost |
+| **Verification (16 fields)** | 8.5k | Constant cost |
+| **Nested group verification** | 7.7k | Same as top-level |
+| **SBE chunk read** | ~5k | From SSTORE2 |
 
-**Recommendation:** Use **Merkle Verifier** for production (2-10x gas savings).
+**Key Advantage:** Constant verification cost regardless of descriptor size.
 
-See [GAS_COMPARISON_ANALYSIS.md](GAS_COMPARISON_ANALYSIS.md) for complete analysis.
+See [GAS_ANALYSIS.md](GAS_ANALYSIS.md) for complete analysis.
 
 ## Contract Reference
 
@@ -111,24 +83,24 @@ See [GAS_COMPARISON_ANALYSIS.md](GAS_COMPARISON_ANALYSIS.md) for complete analys
 
 | Contract | Description | Documentation |
 |----------|-------------|---------------|
-| `FixCBORReader.sol` | Binary search CBOR field reader | [CBOR_PARSER.md](CBOR_PARSER.md) |
-| `FixValueParser.sol` | Type-specific value parsing | [CBOR_PARSER.md](CBOR_PARSER.md) |
+| `FixDescriptorLib.sol` | Main library for descriptor management | [INTEGRATION_GUIDE.md](INTEGRATION_GUIDE.md) |
 | `FixMerkleVerifier.sol` | Merkle proof verification | [MERKLE_VERIFIER.md](MERKLE_VERIFIER.md) |
+| `IFixDescriptor.sol` | Standard interface | [INTEGRATION_GUIDE.md](INTEGRATION_GUIDE.md) |
+| `SSTORE2.sol` | Efficient storage utility | - |
 
 ### Example Implementations
 
 | Contract | Description | Tests |
 |----------|-------------|-------|
-| `BondDescriptorReader.sol` | Example: Bond descriptor parser | 10 tests |
-| `AssetToken.sol` | ERC-721 with FIX descriptors | 9 tests |
-| `AssetTokenFactory.sol` | Token factory | 12 tests |
+| `AssetTokenERC20.sol` | ERC20 with FIX descriptors | Included |
+| `AssetTokenERC721.sol` | ERC721 with FIX descriptors | Included |
+| `AssetTokenFactory.sol` | Token factory pattern | Included |
 
 ### Test Data (Auto-Generated)
 
 | File | Description | Gitignored |
 |------|-------------|------------|
-| `generated/GeneratedCBORTestData.sol` | 6 CBOR test descriptors | ✅ Yes |
-| `generated/GeneratedMerkleData.sol` | Merkle roots + 21 proofs | ✅ Yes |
+| `generated/GeneratedMerkleData.sol` | Merkle roots + proofs | ✅ Yes |
 
 **To regenerate:**
 ```bash
@@ -138,15 +110,13 @@ npm run generate-test-data
 
 ## Test Coverage
 
-### Test Suites (77 tests total)
+### Test Suites
 
-| Suite | Tests | Coverage |
-|-------|-------|----------|
-| `FixCBORReaderTest` | 21 | CBOR parsing, binary search, groups |
-| `GasComparisonTest` | 25 | CBOR vs Merkle gas benchmarks |
-| `BondDescriptorReaderTest` | 10 | Example usage patterns |
-| `AssetTokenTest` | 9 | ERC-721 integration |
-| `AssetTokenFactoryTest` | 12 | Factory patterns |
+| Suite | Coverage |
+|-------|----------|
+| `FixDescriptorLibTest` | Library functionality, storage, verification |
+| `AssetTokenTest` | Token integration patterns |
+| `AssetTokenFactoryTest` | Factory deployment patterns |
 
 **Run all tests:**
 ```bash
@@ -155,34 +125,30 @@ forge test --root contracts
 
 **Run with gas report:**
 ```bash
-forge test --root contracts --match-contract GasComparisonTest --gas-report
+forge test --root contracts --match-contract FixDescriptorLibTest --gas-report
 ```
 
 See [BUILD_AND_TEST.md](BUILD_AND_TEST.md) for detailed testing guide.
 
 ## Key Findings
 
-### ✅ **Use Merkle Verifier for Production**
+### ✅ **Merkle Verification for Production**
 
 Based on comprehensive gas analysis, **Merkle proof verification is the recommended approach** for production deployments:
 
-1. **500x cheaper storage** - Critical for onchain data
-2. **2-10x cheaper access** - Significant savings on every read
-3. **Constant gas cost** - Predictable regardless of descriptor size
-4. **Scales to large descriptors** - Handles 50+ fields efficiently
+1. **Efficient storage** - SSTORE2 makes SBE storage affordable (~100-200k gas)
+2. **Constant verification cost** - 6k-8.5k gas regardless of descriptor size
+3. **Scales to large descriptors** - Handles 50+ fields efficiently
+4. **Cryptographic guarantees** - Merkle proofs ensure field authenticity
 
-### When to Use Each Approach
+### When to Use This Approach
 
-**Use CBOR Parser when:**
-- Very small descriptors (2-3 fields)
-- Need to enumerate all fields onchain
-- Simplicity is more important than gas costs
-
-**Use Merkle Verifier when:**
-- Any descriptor with 5+ fields ⭐
+**Use SBE + Merkle when:**
+- Any descriptor with 2+ fields ⭐
 - Storage cost is a concern
 - Access patterns are selective
 - Production deployment
+- Gas optimization is important
 
 ## Development Workflow
 
@@ -191,7 +157,7 @@ Based on comprehensive gas analysis, **Merkle proof verification is the recommen
 ```bash
 # Clone and install
 git clone <repo>
-cd fixdescriptorkit-evm
+cd fix-descriptor
 forge install
 cd packages/fixdescriptorkit-typescript && npm install
 
@@ -227,7 +193,7 @@ See [BUILD_AND_TEST.md](BUILD_AND_TEST.md) for complete guide.
 ## TypeScript Integration
 
 The TypeScript package provides:
-- CBOR encoding/decoding
+- SBE encoding/decoding
 - Merkle tree generation
 - Proof generation and verification
 - Test data generation
@@ -237,16 +203,13 @@ The TypeScript package provides:
 **Key functions:**
 ```typescript
 import {
-  encodeCanonicalCBOR,
   enumerateLeaves,
   computeRoot,
   generateProof
 } from 'fixdescriptorkit-typescript';
 
-// Encode descriptor
-const cbor = encodeCanonicalCBOR({ 55: "AAPL", 223: "4.250" });
-
 // Generate Merkle tree
+const descriptor = { 55: "AAPL", 223: "4.250" };
 const leaves = enumerateLeaves(descriptor);
 const root = computeRoot(leaves);
 
@@ -262,7 +225,7 @@ const proof = generateProof(leaves, [55]); // Symbol field
 
 ### External Resources
 
-- [RFC 8949 - CBOR](https://www.rfc-editor.org/rfc/rfc8949.html)
+- [SBE Specification](https://github.com/FIXTradingCommunity/fix-simple-binary-encoding) - Simple Binary Encoding
 - [Merkle Trees](https://en.wikipedia.org/wiki/Merkle_tree)
 - [Foundry Book](https://book.getfoundry.sh/)
 - [FIX Protocol](https://www.fixtrading.org/)
@@ -279,5 +242,6 @@ When adding new features:
 ## Questions?
 
 - 📖 Read [BUILD_AND_TEST.md](BUILD_AND_TEST.md) for setup issues
-- 📊 Read [GAS_COMPARISON_ANALYSIS.md](GAS_COMPARISON_ANALYSIS.md) for gas questions
-- 🔍 Check [CBOR_PARSER.md](CBOR_PARSER.md) or [MERKLE_VERIFIER.md](MERKLE_VERIFIER.md) for implementation details
+- 📊 Read [GAS_ANALYSIS.md](GAS_ANALYSIS.md) for gas questions
+- 🔍 Check [MERKLE_VERIFIER.md](MERKLE_VERIFIER.md) for implementation details
+- 💡 See [INTEGRATION_GUIDE.md](INTEGRATION_GUIDE.md) for integration patterns
