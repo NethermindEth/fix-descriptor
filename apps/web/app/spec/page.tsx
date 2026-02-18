@@ -409,7 +409,7 @@ export default function SpecPage() {
               fontSize: 'clamp(0.8rem, 2vw, 0.9rem)',
               color: 'rgba(255,255,255,0.7)'
             }}>
-              <strong style={{ color: 'rgba(255,255,255,0.9)' }}>Version 1.0</strong> · Last Updated: September 2025
+              <strong style={{ color: 'rgba(255,255,255,0.9)' }}>Version 1.0</strong> · Last Updated: February 2026
             </div>
 
             {/* Prominent CTA for Explorer */}
@@ -569,6 +569,25 @@ export default function SpecPage() {
             <SubsectionHeading id="example-fix-input">
               FIX Message Input
             </SubsectionHeading>
+            <p style={{ color: 'rgba(255,255,255,0.6)', fontSize: 'clamp(0.75rem, 1.8vw, 0.85rem)', marginBottom: '0.75rem' }}>
+              FIX uses tag=value pairs; implementations accept pipe (|) or SOH (0x01) as delimiters. Wire format (pipe-separated):
+            </p>
+            <div style={{ 
+              padding: 'clamp(0.75rem, 2vw, 1rem)',
+              background: 'rgba(255,255,255,0.02)',
+              border: '1px solid rgba(255,255,255,0.08)',
+              borderRadius: '6px',
+              fontFamily: 'ui-monospace, monospace',
+              fontSize: 'clamp(0.65rem, 1.5vw, 0.75rem)',
+              marginBottom: '0.75rem',
+              overflowX: 'auto',
+              wordBreak: 'break-all'
+            }}>
+              <code style={{ color: 'rgba(255,255,255,0.8)' }}>55=USTB-2030-11-15|48=US91282CEZ76|22=4|167=TBOND|461=DBFTFR|541=20301115|223=4.250|15=USD|454=2|455=91282CEZ7|456=1|455=US91282CEZ76|456=4|453=2|448=US_TREASURY|447=D|452=1|448=CUSTODIAN_BANK_ABC|447=D|452=24|</code>
+            </div>
+            <p style={{ color: 'rgba(255,255,255,0.5)', fontSize: 'clamp(0.7rem, 1.6vw, 0.8rem)', marginBottom: '0.75rem' }}>
+              Same data shown in readable form:
+            </p>
             <div style={{ 
               padding: 'clamp(1rem, 3vw, 1.5rem)',
               background: 'rgba(255,255,255,0.03)',
@@ -660,7 +679,7 @@ export default function SpecPage() {
               Merkle Tree
             </SubsectionHeading>
             <p style={{ color: 'rgba(255,255,255,0.7)', lineHeight: '1.8', marginBottom: '1rem' }}>
-              Each field becomes a Merkle leaf. Example paths:
+              Each field becomes a Merkle leaf. Leaf hash = keccak256(pathCBOR || &quot;=&quot; || valueBytes), where pathCBOR is the CBOR-encoded path. Example paths:
             </p>
             <div style={{ 
               padding: 'clamp(1rem, 3vw, 1.5rem)',
@@ -672,16 +691,16 @@ export default function SpecPage() {
               marginBottom: '1rem'
             }}>
               <div style={{ color: 'rgba(255,255,255,0.8)', marginBottom: '0.75rem' }}>
-                [15] → &quot;USD&quot; = keccak256(SBE.encode([15]) || &quot;USD&quot;)
+                [15] → &quot;USD&quot; = keccak256(pathCBOR || &quot;=&quot; || valueBytes)
               </div>
               <div style={{ color: 'rgba(255,255,255,0.8)', marginBottom: '0.75rem' }}>
-                [223] → &quot;4.250&quot; = keccak256(SBE.encode([223]) || &quot;4.250&quot;)
+                [223] → &quot;4.250&quot; = keccak256(pathCBOR || &quot;=&quot; || valueBytes)
               </div>
               <div style={{ color: 'rgba(255,255,255,0.8)', marginBottom: '0.75rem' }}>
-                [453, 0, 448] → &quot;US_TREASURY&quot; = keccak256(SBE.encode([453, 0, 448]) || &quot;US_TREASURY&quot;)
+                [453, 0, 448] → &quot;US_TREASURY&quot; = keccak256(pathCBOR || &quot;=&quot; || valueBytes)
               </div>
               <div style={{ color: 'rgba(255,255,255,0.8)' }}>
-                [454, 1, 456] → &quot;4&quot; = keccak256(SBE.encode([454, 1, 456]) || &quot;4&quot;)
+                [454, 1, 456] → &quot;4&quot; = keccak256(pathCBOR || &quot;=&quot; || valueBytes)
               </div>
             </div>
             <p style={{ color: 'rgba(255,255,255,0.7)', lineHeight: '1.8', marginBottom: 'clamp(1.5rem, 3vw, 2rem)', fontSize: 'clamp(0.9rem, 2vw, 1rem)' }}>
@@ -702,7 +721,7 @@ export default function SpecPage() {
             }}>
               <pre style={{ margin: 0, color: 'rgba(255,255,255,0.9)', lineHeight: '1.7' }}>{`FixDescriptor {
   schemaHash: 0x...,
-  fixRoot: 0x7a3f... (Merkle root),
+  fixRoot: 0x39abfe600b09e6ddcaf23c10b5af2a50ed79720f2283ec5b0f53d552e77e3700,
   fixSBEPtr: 0x123... (SSTORE2 address),
   fixSBELen: 243
 }`}</pre>
@@ -1160,9 +1179,9 @@ export default function SpecPage() {
               marginBottom: '2rem'
             }}>
               <p style={{ color: 'rgba(255,255,255,0.7)', lineHeight: '1.7', margin: 0 }}>
-                Transport/session mechanics (e.g., 8 (BeginString), 9 (BodyLength), 10 (CheckSum), sequence numbers, 
-                admin/session fields) <strong style={{ color: 'rgba(239, 68, 68, 0.9)' }}>MUST NOT</strong> be part 
-                of the committed descriptor.
+                Transport/session mechanics (e.g., 8 (BeginString), 9 (BodyLength), 10 (CheckSum), 34 (MsgSeqNum), 
+                35 (MsgType), 49 (SenderCompID), 52 (SendingTime), 56 (TargetCompID), and other admin/session fields) 
+                <strong style={{ color: 'rgba(239, 68, 68, 0.9)' }}>MUST NOT</strong> be part of the committed descriptor.
               </p>
             </div>
 
@@ -1413,7 +1432,7 @@ export default function SpecPage() {
             </div>
 
             <p style={{ color: 'rgba(255,255,255,0.7)', lineHeight: '1.8', marginBottom: 'clamp(1.5rem, 3vw, 2rem)', fontSize: 'clamp(0.9rem, 2vw, 1rem)' }}>
-              <strong>Path encoding rules:</strong> Each path is an array of unsigned integers, encoded using SBE. 
+              <strong>Path encoding rules:</strong> Each path is an array of unsigned integers, encoded using <strong>CBOR</strong> (Concise Binary Object Representation). 
               Paths are used for both Merkle leaves and verification.
             </p>
 
@@ -1554,7 +1573,7 @@ export default function SpecPage() {
             <ul style={{ color: 'rgba(255,255,255,0.7)', lineHeight: '1.8', marginBottom: 'clamp(1.5rem, 3vw, 2rem)', paddingLeft: 'clamp(1rem, 3vw, 1.5rem)', fontSize: 'clamp(0.9rem, 2vw, 1rem)' }}>
               <li style={{ marginBottom: '0.75rem' }}>The SBE data is deployed as the runtime bytecode of a minimal data contract (prefixed with a STOP byte)</li>
                 <li style={{ marginBottom: '0.75rem' }}>Anyone can retrieve bytes via <code style={{ background: 'rgba(255,255,255,0.1)', padding: '0.2rem 0.5rem', borderRadius: '3px', fontSize: '0.9em' }}>eth_getCode(fixSBEPtr)</code></li>
-              <li>Optionally expose a chunk retrieval function using EXTCODECOPY</li>
+              <li>Implementations may expose <code style={{ background: 'rgba(255,255,255,0.1)', padding: '0.2rem 0.5rem', borderRadius: '3px', fontSize: '0.9em' }}>getFixSBEChunk(uint256 start, uint256 size)</code> for chunked retrieval via EXTCODECOPY (~2.4k-8k gas per chunk)</li>
             </ul>
 
             <SubsectionHeading id="events-versioning">
@@ -1679,7 +1698,7 @@ export default function SpecPage() {
             </SubsectionHeading>
             <p style={{ color: 'rgba(255,255,255,0.7)', lineHeight: '1.8', marginBottom: '1rem' }}>
               Retrieved SBE bytes are decoded using the SBE schema and generated codec classes.
-              The SBE Lambda encoder service handles encoding and decoding operations:
+              The reference implementation uses schema-driven encoding/decoding with runtime-generated codecs:
             </p>
             <ul style={{ color: 'rgba(255,255,255,0.7)', lineHeight: '1.8', marginBottom: 'clamp(1.5rem, 3vw, 2rem)', paddingLeft: 'clamp(1rem, 3vw, 1.5rem)', fontSize: 'clamp(0.9rem, 2vw, 1rem)' }}>
               <li style={{ marginBottom: '0.75rem' }}>
@@ -1761,10 +1780,10 @@ export default function SpecPage() {
             </ul>
           </section>
 
-          {/* Section 14: Security Considerations (was 12) */}
+          {/* Section 12: Security Considerations */}
           <section style={{ marginBottom: 'clamp(2rem, 5vw, 4rem)' }}>
             <SectionHeading id="security">
-              14. Security Considerations
+              12. Security Considerations
             </SectionHeading>
 
             <SubsectionHeading id="trust-assumptions">
@@ -1812,7 +1831,7 @@ export default function SpecPage() {
               borderRadius: '8px',
               marginBottom: '2rem'
             }}>
-              <p style={{ color: 'rgba(255,255,255,0.8)', lineHeight: '1.7)', marginBottom: '0.5rem', fontWeight: '500' }}>
+              <p style={{ color: 'rgba(255,255,255,0.8)', lineHeight: '1.7', marginBottom: '0.5rem', fontWeight: '500' }}>
                 ✗ Merkle proofs do NOT prove:
               </p>
               <ul style={{ color: 'rgba(255,255,255,0.7)', lineHeight: '1.8', margin: 0, paddingLeft: '1.5rem' }}>
@@ -1823,22 +1842,22 @@ export default function SpecPage() {
             </div>
           </section>
 
-          {/* Section 15: Gas Cost Analysis (was 13) */}
+          {/* Section 13: Gas Cost Analysis */}
           <section style={{ marginBottom: 'clamp(2rem, 5vw, 4rem)' }}>
             <SectionHeading id="gas-costs">
-              15. Gas Cost Analysis
+              13. Gas Cost Analysis
             </SectionHeading>
 
             <p style={{ color: 'rgba(255,255,255,0.7)', lineHeight: '1.8', marginBottom: 'clamp(1.5rem, 3vw, 2rem)', fontSize: 'clamp(0.9rem, 2vw, 1rem)' }}>
               Understanding gas costs helps implementers make informed decisions about descriptor size and verification strategies.
             </p>
 
-            <SubsectionHeading id="human-readable-gas">
-              15.1 Human-Readable Descriptor Costs
+            <SubsectionHeading id="deployment-usage-costs">
+              13.1 Deployment and Usage Costs
             </SubsectionHeading>
 
             <p style={{ color: 'rgba(255,255,255,0.7)', lineHeight: '1.8', marginBottom: '1.5rem' }}>
-              The human-readable descriptor feature introduces additional gas considerations for deployment and usage.
+              The following costs apply when deploying tokens with embedded FIX descriptors and when calling descriptor-related functions.
             </p>
 
             <div style={{ 
@@ -1852,12 +1871,12 @@ export default function SpecPage() {
                 One-Time Deployment Costs
               </div>
               <div style={{ fontFamily: 'ui-monospace, monospace', fontSize: '0.875rem', color: 'rgba(255,255,255,0.7)', lineHeight: '1.8' }}>
-                <div style={{ marginBottom: '0.5rem' }}>ERC20 Asset token deployment: <span style={{ color: 'rgba(251, 191, 36, 0.9)' }}>~1,324,447 gas</span></div>
-                <div style={{ marginBottom: '0.5rem' }}>ERC721 Asset token deployment: <span style={{ color: 'rgba(251, 191, 36, 0.9)' }}>~1,649,225 gas</span></div>
-                <div style={{ marginBottom: '0.5rem' }}>Factory deployment: <span style={{ color: 'rgba(251, 191, 36, 0.9)' }}>~2,142,209 gas</span></div>
-                <div style={{ marginBottom: '0.5rem' }}>SBE data storage (SSTORE2): <span style={{ color: 'rgba(251, 191, 36, 0.9)' }}>~200 gas/byte + ~32k overhead</span></div>
+                <div style={{ marginBottom: '0.5rem' }}>ERC20 Asset token (via factory): <span style={{ color: 'rgba(251, 191, 36, 0.9)' }}>~1,230,000-1,264,000 gas</span></div>
+                <div style={{ marginBottom: '0.5rem' }}>ERC721 Asset token deployment: <span style={{ color: 'rgba(251, 191, 36, 0.9)' }}>~1,595,500 gas</span></div>
+                <div style={{ marginBottom: '0.5rem' }}>Factory deployment: <span style={{ color: 'rgba(251, 191, 36, 0.9)' }}>~2,024,700 gas</span></div>
+                <div style={{ marginBottom: '0.5rem' }}>SBE data contract (DataContractFactory.deploy): <span style={{ color: 'rgba(251, 191, 36, 0.9)' }}>~58k-59k gas</span></div>
                 <div style={{ marginTop: '1rem', paddingTop: '1rem', borderTop: '1px solid rgba(255,255,255,0.1)' }}>
-                  Note: Actual costs vary by descriptor size
+                  Measured via forge test --gas-report; actual costs vary by deployment context.
                 </div>
                 <div>L2 deployment can reduce costs by 10-100x</div>
               </div>
@@ -1915,7 +1934,7 @@ export default function SpecPage() {
                     fontSize: '0.75rem',
                     fontWeight: 600
                   }}>low</span>
-                  <span>Verify field (depth 2-3): ~12,000-14,000 gas</span>
+                  <span>verifyField (2 fields): ~6k-7k gas</span>
                 </div>
                 <div style={{ marginBottom: '0.5rem', display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
                   <span style={{
@@ -1928,7 +1947,7 @@ export default function SpecPage() {
                     fontSize: '0.75rem',
                     fontWeight: 600
                   }}>medium</span>
-                  <span>Verify field (depth 4-6): ~15,000-20,000 gas</span>
+                  <span>verifyField (16 fields): ~8.5k gas</span>
                 </div>
                 <div style={{ marginBottom: '0.5rem', display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
                   <span style={{
@@ -1941,16 +1960,16 @@ export default function SpecPage() {
                     fontSize: '0.75rem',
                     fontWeight: 600
                   }}>high</span>
-                  <span>Verify field (depth 8-10): ~23,000-27,000 gas</span>
+                  <span>verifyField (50+ fields): ~12k gas</span>
                 </div>
                 <div style={{ marginTop: '1rem', paddingTop: '1rem', borderTop: '1px solid rgba(59, 130, 246, 0.1)', fontSize: '0.8rem', color: 'rgba(255,255,255,0.5)' }}>
-                  Measured: depth 0=9,706 gas, depth 2=11,975, depth 4=15,372, depth 6=19,980, depth 8=23,523, depth 10=26,849. Cost scales at ~1,700 gas per proof step.
+                  Measured: single leaf ~7,050 gas (FixDescriptorLib). Cost scales logarithmically with descriptor size. Measured via forge test --gas-report.
                 </div>
               </div>
             </div>
 
             <SubsectionHeading id="base-operations">
-              15.2 Base Operation Costs
+              13.2 Base Operation Costs
             </SubsectionHeading>
 
             <SubsectionHeading id="deployment-costs">
@@ -1967,9 +1986,8 @@ export default function SpecPage() {
                 SBE Storage (SSTORE2)
               </div>
               <ul style={{ color: 'rgba(255,255,255,0.7)', lineHeight: '1.8', margin: 0, paddingLeft: '1.5rem', fontSize: '0.9rem' }}>
-                <li style={{ marginBottom: '0.5rem' }}>~200 gas per byte + ~32k deployment overhead</li>
-                <li style={{ marginBottom: '0.5rem' }}><strong>Measured:</strong> 57,859-59,131 gas for data contract deployment (via DataContractFactory)</li>
-                <li style={{ marginBottom: '0.5rem' }}><strong>Example:</strong> 243-byte descriptor ≈ 80k gas total</li>
+                <li style={{ marginBottom: '0.5rem' }}><strong>Measured:</strong> ~58k-59k gas for data contract deployment (DataContractFactory.deploy)</li>
+                <li style={{ marginBottom: '0.5rem' }}><strong>Example:</strong> 243-byte descriptor ≈ 80k gas total (example size; actual varies by schema)</li>
                 <li>3-4x cheaper than traditional storage slots</li>
               </ul>
             </div>
@@ -1985,18 +2003,19 @@ export default function SpecPage() {
                 Descriptor Operations
               </div>
               <ul style={{ color: 'rgba(255,255,255,0.7)', lineHeight: '1.8', margin: 0, paddingLeft: '1.5rem', fontSize: '0.9rem' }}>
-                <li style={{ marginBottom: '0.5rem' }}><strong>setFixDescriptor():</strong> 24,844-141,874 gas (varies by initialization state)</li>
-                <li style={{ marginBottom: '0.5rem' }}><strong>getFixDescriptor():</strong> ~14,825-14,896 gas (view function)</li>
-                <li style={{ marginBottom: '0.5rem' }}><strong>getFixRoot():</strong> ~2,671-4,719 gas (view function)</li>
-                <li><strong>verifyFieldProof():</strong> ~7,259 gas (single leaf tree, varies with proof depth)</li>
+                <li style={{ marginBottom: '0.5rem' }}><strong>setFixDescriptor():</strong> 24,662-119,573 gas (varies by initialization state)</li>
+                <li style={{ marginBottom: '0.5rem' }}><strong>getFixDescriptor():</strong> ~12,400 gas (view function)</li>
+                <li style={{ marginBottom: '0.5rem' }}><strong>getFixRoot():</strong> ~2,691-4,739 gas (view function)</li>
+                <li style={{ marginBottom: '0.5rem' }}><strong>verifyField():</strong> ~7,050 gas (single leaf); ~6k-12k gas depending on proof depth</li>
+                <li><strong>getFixSBEChunk():</strong> ~2,400-8,000 gas per chunk (view function)</li>
               </ul>
             </div>
           </section>
 
-          {/* Section 16: Implementation Guide (was 14) */}
+          {/* Section 14: Implementation Guide */}
           <section style={{ marginBottom: 'clamp(2rem, 5vw, 4rem)' }}>
             <SectionHeading id="implementation">
-              16. Implementation Guide
+              14. Implementation Guide
             </SectionHeading>
 
             <p style={{ color: 'rgba(255,255,255,0.7)', lineHeight: '1.8', marginBottom: '1.5rem' }}>

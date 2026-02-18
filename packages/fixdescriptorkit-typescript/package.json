@@ -16,8 +16,6 @@
     "generate-merkle": "npx tsx scripts/generate-solidity-test-data.ts merkle > ../../contracts/src/generated/GeneratedMerkleData.sol",
     "generate-test-data": "npm run generate-merkle",
     "build:sbe-jar": "node scripts/build-sbe-jar.js",
-    "test:encode": "tsx src/sbe/tests/index.ts",
-    "test:decode": "tsx src/sbe/tests/index-decode.ts",
     "generate:sbe": "tsx scripts/generate-sbe-schema.ts"
   },
   "exports": {

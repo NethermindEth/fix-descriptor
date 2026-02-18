@@ -29,6 +29,7 @@ export {
 export {
   orchestraToSbe,
   orchestraToSbeFullSchema,
+  hashOrchestraFile,
   extractMessageIdFromSbe,
   type OrchestraField,
 } from './orchestraToSbe.js';

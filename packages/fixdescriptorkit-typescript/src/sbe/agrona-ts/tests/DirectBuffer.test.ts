@@ -1,3 +1,4 @@
+import { describe, test, expect } from 'vitest';
 import { DefaultMutableDirectBuffer } from "../src/index";
 
 describe("DirectBuffer", () => {

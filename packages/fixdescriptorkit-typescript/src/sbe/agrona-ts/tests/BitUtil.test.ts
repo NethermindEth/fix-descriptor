@@ -1,3 +1,4 @@
+import { describe, test, expect } from 'vitest';
 import { BitUtil } from "../src/index";
 
 describe("isEven", () => {

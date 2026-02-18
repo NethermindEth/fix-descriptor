@@ -1,4 +1,4 @@
-import { readFileSync, readdirSync, rmSync, statSync } from "fs";
+import { existsSync, readFileSync, readdirSync, rmSync, statSync } from "fs";
 import { dirname, resolve, sep } from "path";
 import { fileURLToPath, pathToFileURL } from "url";
 
@@ -88,10 +88,16 @@ export async function encodeMessage(
     const tokens = parseFixTokens(fixMessage);
     const groupIds = collectGroupIds(message.nodes);
     const scalarValues = buildScalarMap(tokens, groupIds);
+    
+    // Log groups found in schema
+    const groupsInSchema = message.nodes.filter(n => n.kind === "group").map(n => ({ id: n.id, name: n.name }));
     log("encode-fields start", {
         tokenCount: tokens.length,
         groupCount: groupIds.size,
         nodeCount: message.nodes.length,
+        groupsInSchema: JSON.stringify(groupsInSchema),
+        groupIds: Array.from(groupIds),
+        tokensWithGroups: tokens.filter(t => groupIds.has(t.tag)).map(t => `${t.tag}=${t.value}`),
     });
 
     // Encode fields/groups in schema order.
@@ -109,6 +115,12 @@ export async function encodeMessage(
         }
         if (node.kind === "group") {
             const entries = parseGroupEntries(tokens, node);
+            log("encode-group", {
+                groupId: node.id,
+                groupName: node.name,
+                entryCount: entries.length,
+                entries: entries.length > 0 ? JSON.stringify(entries.slice(0, 2)) : '[]',
+            });
             encodeGroupEntries(encoder, node, entries, schema.typeByName);
         }
     }
@@ -468,9 +480,8 @@ function coerceValue(
 function cleanupGeneratedCodecs(codecsDir: string): void {
     try {
         rmSync(codecsDir, { recursive: true, force: true });
-        log("cleanup", { codecsDir });
     } catch (error) {
-        log("cleanup-failed", { codecsDir, error });
+        // Ignore cleanup errors
     }
 }
 

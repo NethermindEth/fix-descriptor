@@ -144,12 +144,21 @@ export async function decodeMessage(
     const actingVersion = typeof decoder.actingVersion === "function" ? decoder.actingVersion() : version;
     let inVariableSection = false;
 
+    // Log groups found in schema
+    const groupsInSchema = message.nodes.filter(n => n.kind === "group").map(n => ({ id: n.id, name: n.name }));
+    log("decode-fields start", {
+        nodeCount: message.nodes.length,
+        groupsInSchema: JSON.stringify(groupsInSchema),
+    });
+
     for (const node of message.nodes) {
         if (node.kind === "data") {
             inVariableSection = true;
         }
         if (node.kind === "group") {
+            log("decode-group start", { groupId: node.id, groupName: node.name });
             const entries = readGroup(decoder, node);
+            log("decode-group result", { groupId: node.id, groupName: node.name, entryCount: entries.length });
             if (entries.length > 0) {
                 decodedFields[node.id] = entries;
             }
@@ -471,9 +480,8 @@ function extractTemplateId(encodedMessage: string): number | undefined {
 function cleanupGeneratedCodecs(codecsDir: string): void {
     try {
         rmSync(codecsDir, { recursive: true, force: true });
-        log("cleanup", { codecsDir });
     } catch (error) {
-        log("cleanup-failed", { codecsDir, error });
+        // Ignore cleanup errors
     }
 }
 
@@ -528,16 +536,20 @@ function parseMessageNodes(nodes: Array<Record<string, unknown>>): MessageNode[]
 }
 
 function readGroup(decoder: Record<string, unknown>, group: MessageGroupNode): Array<Record<string, unknown>> {
-    const accessor = decoder[lowerFirst(group.name)] as (() => Record<string, unknown>) | undefined;
+    const accessorName = lowerFirst(group.name);
+    const accessor = decoder[accessorName] as (() => Record<string, unknown>) | undefined;
     if (typeof accessor !== "function") {
+        console.log(`[decode-group] No accessor found for group ${group.id} (${group.name}), accessor name: ${accessorName}, available methods:`, Object.keys(decoder).filter(k => k.toLowerCase().includes(group.name.toLowerCase().slice(0, 5))));
         return [];
     }
     const groupDecoder = accessor.call(decoder);
     if (!groupDecoder || typeof groupDecoder !== "object") {
+        console.log(`[decode-group] Group decoder is not an object for ${group.id} (${group.name})`);
         return [];
     }
     const countMethod = groupDecoder["count"] as (() => number) | undefined;
     const count = typeof countMethod === "function" ? countMethod.call(groupDecoder) : 0;
+    console.log(`[decode-group] Group ${group.id} (${group.name}): count=${count}`);
     if (!Number.isFinite(count) || count <= 0) {
         return [];
     }
